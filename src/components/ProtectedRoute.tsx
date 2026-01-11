@@ -26,13 +26,13 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    const redirectMap: Record<UserRole, string> = {
+  if (allowedRoles && !allowedRoles.includes(profile.role as UserRole)) {
+    const redirectMap: Record<string, string> = {
       admin: '/admin',
       site_manager: '/site-manager',
       worker: '/worker',
     };
-    return <Navigate to={redirectMap[profile.role]} replace />;
+    return <Navigate to={redirectMap[profile.role] || '/login'} replace />;
   }
 
   return <>{children}</>;

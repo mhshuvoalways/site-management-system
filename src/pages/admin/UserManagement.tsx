@@ -2,7 +2,7 @@ import { Edit2, Plus, Trash2, User, UserCog, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Profile } from "../../types";
 
 export function UserManagement() {
@@ -112,7 +112,7 @@ export function UserManagement() {
       id: user.id,
       email: user.email,
       full_name: user.full_name,
-      role: user.role,
+      role: user.role as "admin" | "site_manager" | "worker",
       phone: user.phone || "",
     });
     setShowEditModal(true);
@@ -392,7 +392,7 @@ export function UserManagement() {
                       : "Worker"}
                   </span>
                   <p className="text-xs text-gray-500 pt-2">
-                    Created {new Date(user.created_at).toLocaleDateString()}
+                    Created {new Date(user.created_at ?? "").toLocaleDateString()}
                   </p>
                 </div>
               </div>

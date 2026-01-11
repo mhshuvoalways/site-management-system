@@ -21,12 +21,12 @@ export function Login() {
 
     if (user && profile && !loading) {
       console.log("Redirecting to:", profile.role);
-      const redirectMap = {
+      const redirectMap: Record<string, string> = {
         admin: "/admin",
         site_manager: "/site-manager",
         worker: "/worker",
       };
-      navigate(redirectMap[profile.role]);
+      navigate(redirectMap[profile.role] || "/login");
     } else if (user && !profile && !loading && submitting) {
       console.warn("Profile not found for authenticated user");
       const timer = setTimeout(() => {

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Site } from "../../types";
 
 export function AdminSites() {
@@ -297,7 +297,7 @@ export function AdminSites() {
                 </label>
                 <input
                   type="text"
-                  value={editingSite.location}
+                  value={editingSite.location ?? ""}
                   onChange={(e) =>
                     setEditingSite({ ...editingSite, location: e.target.value })
                   }

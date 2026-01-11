@@ -13,7 +13,7 @@ import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { BuildingControl, BuildingControlPhoto, Site } from "../../types";
 
 interface PhotoUpload {
@@ -275,7 +275,7 @@ export function SiteManagerBuildingControl() {
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4" />
                           <span>
-                            {new Date(report.created_at).toLocaleDateString()}
+                            {new Date(report.created_at ?? "").toLocaleDateString()}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">

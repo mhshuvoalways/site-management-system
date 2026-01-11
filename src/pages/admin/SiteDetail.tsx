@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Item, Site, SiteItem } from "../../types";
 
 export function AdminSiteDetail() {
@@ -80,7 +80,7 @@ export function AdminSiteDetail() {
       if (existing) {
         const { error: updateError } = await supabase
           .from("site_items")
-          .update({ quantity: existing.quantity + quantity })
+          .update({ quantity: (existing.quantity ?? 0) + quantity })
           .eq("id", existing.id);
 
         if (updateError) {
@@ -124,7 +124,7 @@ export function AdminSiteDetail() {
       transferred_by: profile.id,
     });
 
-    const newQuantity = currentSiteItem.quantity - quantity;
+    const newQuantity = (currentSiteItem.quantity ?? 0) - quantity;
     if (newQuantity === 0) {
       await supabase.from("site_items").delete().eq("id", currentSiteItem.id);
     } else {
@@ -144,7 +144,7 @@ export function AdminSiteDetail() {
     if (targetItem) {
       await supabase
         .from("site_items")
-        .update({ quantity: targetItem.quantity + quantity })
+        .update({ quantity: (targetItem.quantity ?? 0) + quantity })
         .eq("id", targetItem.id);
     } else {
       await supabase.from("site_items").insert({
@@ -165,7 +165,7 @@ export function AdminSiteDetail() {
     e.preventDefault();
     if (!currentSiteItem) return;
 
-    const newQuantity = currentSiteItem.quantity - quantity;
+    const newQuantity = (currentSiteItem.quantity ?? 0) - quantity;
     if (newQuantity <= 0) {
       await supabase.from("site_items").delete().eq("id", currentSiteItem.id);
     } else {
@@ -680,7 +680,7 @@ export function AdminSiteDetail() {
                 <input
                   type="number"
                   min="1"
-                  max={currentSiteItem.quantity}
+                  max={currentSiteItem.quantity ?? 0}
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
@@ -733,15 +733,15 @@ export function AdminSiteDetail() {
                 <input
                   type="number"
                   min="1"
-                  max={currentSiteItem.quantity}
+                  max={currentSiteItem.quantity ?? 0}
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
                 <p className="text-sm text-gray-600 mt-2">
-                  Remaining: {currentSiteItem.quantity - quantity}
-                  {currentSiteItem.quantity - quantity === 0 && (
+                  Remaining: {(currentSiteItem.quantity ?? 0) - quantity}
+                  {(currentSiteItem.quantity ?? 0) - quantity === 0 && (
                     <span className="text-red-600 font-medium">
                       {" "}
                       (Item will be removed)

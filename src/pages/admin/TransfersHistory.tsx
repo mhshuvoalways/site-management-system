@@ -1,7 +1,7 @@
 import { ArrowRightLeft, Calendar, ChevronLeft, ChevronRight, Package, Search, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Layout } from '../../components/Layout';
-import { supabase } from '../../lib/supabase';
+import { supabase } from "../../integrations/supabase/client";
 import { Transfer } from '../../types';
 
 const ITEMS_PER_PAGE = 20;
@@ -17,7 +17,7 @@ export function TransfersHistory() {
   }, []);
 
   const loadTransfers = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('transfers')
       .select(`
         *,
@@ -186,7 +186,7 @@ export function TransfersHistory() {
                         <td className="py-4 px-4">
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            <span>{formatDate(transfer.created_at)}</span>
+                            <span>{formatDate(transfer.created_at ?? "")}</span>
                           </div>
                         </td>
                       </tr>

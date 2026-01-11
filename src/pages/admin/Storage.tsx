@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Item } from "../../types";
 
 const ITEMS_PER_PAGE = 10;
@@ -33,9 +33,13 @@ export function AdminStorage() {
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentItem, setCurrentItem] = useState<Item | null>(null);
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<{
+    name: string;
+    item_type: "equipment" | "material";
+    quantity: number;
+  }>({
     name: "",
-    item_type: "equipment" as const,
+    item_type: "equipment",
     quantity: 0,
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
