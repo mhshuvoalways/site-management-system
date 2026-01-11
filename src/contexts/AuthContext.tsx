@@ -37,17 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setLoading(true);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only handle meaningful auth changes, not token refreshes or visibility changes
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        (async () => {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await fetchProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+        })();
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Just update the user silently without triggering loading state
         setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
-      })();
+      }
     });
 
     return () => subscription.unsubscribe();
