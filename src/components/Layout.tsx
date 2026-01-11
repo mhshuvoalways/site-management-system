@@ -42,7 +42,7 @@ export function Layout({ children }: LayoutProps) {
     if (profile?.role === "site_manager") {
       return [
         { to: "/site-manager", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/site-manager/sites", icon: Building, label: "All Sites" },
+        { to: "/site-manager/sites", icon: Building, label: "My Sites" },
         { to: "/site-manager/transfers", icon: ArrowRightLeft, label: "Transfers" },
         { to: "/site-manager/users", icon: Users, label: "Users" },
       ];
