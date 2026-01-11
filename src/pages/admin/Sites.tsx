@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { Site } from "../../types";
+import { capitalizeWords } from "../../utils/capitalize";
 
 export function AdminSites() {
   const [sites, setSites] = useState<Site[]>([]);
@@ -176,11 +177,11 @@ export function AdminSites() {
                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {site.name}
+                    {capitalizeWords(site.name)}
                   </h3>
                   <div className="flex items-center space-x-2 text-gray-600 text-sm mb-3">
                     <MapPin className="w-4 h-4" />
-                    <span>{site.location}</span>
+                    <span>{capitalizeWords(site.location)}</span>
                   </div>
                   {site.description && (
                     <p className="text-gray-500 text-sm line-clamp-2 mb-4">
