@@ -605,10 +605,15 @@ export function AdminSiteDetail() {
                   Quantity
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={quantity === 0 ? "" : quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setQuantity(value === "" ? 0 : parseInt(value, 10));
+                  }}
+                  placeholder="1"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
@@ -678,11 +683,17 @@ export function AdminSiteDetail() {
                   Quantity to Transfer
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  max={currentSiteItem.quantity ?? 0}
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={quantity === 0 ? "" : quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    const numValue = value === "" ? 0 : parseInt(value, 10);
+                    const maxQty = currentSiteItem.quantity ?? 0;
+                    setQuantity(Math.min(numValue, maxQty));
+                  }}
+                  placeholder="1"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
@@ -731,11 +742,17 @@ export function AdminSiteDetail() {
                   Quantity to Reduce
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  max={currentSiteItem.quantity ?? 0}
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={quantity === 0 ? "" : quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    const numValue = value === "" ? 0 : parseInt(value, 10);
+                    const maxQty = currentSiteItem.quantity ?? 0;
+                    setQuantity(Math.min(numValue, maxQty));
+                  }}
+                  placeholder="1"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
