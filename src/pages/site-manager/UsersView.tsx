@@ -1,4 +1,5 @@
 import { User, UserCog, Users } from "lucide-react";
+import { capitalizeWords } from "../../utils/capitalize";
 import { useEffect, useState } from "react";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
@@ -145,7 +146,7 @@ export function SiteManagerUsersView() {
                   </div>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {user.full_name}
+                  {capitalizeWords(user.full_name)}
                 </h3>
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">{user.email}</p>
