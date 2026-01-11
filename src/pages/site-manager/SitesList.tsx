@@ -18,22 +18,13 @@ export function SiteManagerSitesList() {
   const loadSites = async () => {
     if (!profile) return;
 
-    const { data: siteManagers } = await supabase
-      .from("site_managers")
-      .select("site_id")
-      .eq("manager_id", profile.id);
+    // Site managers can see ALL sites - no assignment needed
+    const { data } = await supabase
+      .from("sites")
+      .select("*")
+      .order("name");
 
-    if (siteManagers && siteManagers.length > 0) {
-      const siteIds = siteManagers.map((sm) => sm.site_id);
-      const { data } = await supabase
-        .from("sites")
-        .select("*")
-        .in("id", siteIds)
-        .order("name");
-
-      setSites(data || []);
-    }
-
+    setSites(data || []);
     setLoading(false);
   };
 
@@ -51,9 +42,9 @@ export function SiteManagerSitesList() {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Sites</h1>
+          <h1 className="text-3xl font-bold text-gray-900">All Sites</h1>
           <p className="text-gray-600 mt-1">
-            View and manage your assigned sites
+            View and manage all sites
           </p>
         </div>
 
@@ -61,10 +52,10 @@ export function SiteManagerSitesList() {
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <Building className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No Sites Assigned
+              No Sites Available
             </h3>
             <p className="text-gray-600">
-              You haven't been assigned to any sites yet.
+              No sites have been created yet.
             </p>
           </div>
         ) : (

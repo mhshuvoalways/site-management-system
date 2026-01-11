@@ -34,7 +34,7 @@ export function Layout({ children }: LayoutProps) {
       return [
         { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
         { to: "/admin/sites", icon: Building, label: "Sites" },
-        { to: "/admin/storage", icon: Package, label: "Storage" },
+        { to: "/admin/product-database", icon: Package, label: "Product Database" },
         { to: "/admin/transfers", icon: ArrowRightLeft, label: "Transfers" },
         { to: "/admin/users", icon: Users, label: "Users" },
       ];
@@ -42,7 +42,9 @@ export function Layout({ children }: LayoutProps) {
     if (profile?.role === "site_manager") {
       return [
         { to: "/site-manager", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/site-manager/sites", icon: Building, label: "My Sites" },
+        { to: "/site-manager/sites", icon: Building, label: "All Sites" },
+        { to: "/site-manager/transfers", icon: ArrowRightLeft, label: "Transfers" },
+        { to: "/site-manager/users", icon: Users, label: "Users" },
       ];
     }
     if (profile?.role === "worker") {

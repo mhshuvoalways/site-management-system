@@ -16,6 +16,8 @@ import { SiteManagerDashboard } from "./pages/site-manager/Dashboard";
 import { SiteManagerSiteDetail } from "./pages/site-manager/SiteDetail";
 import { SiteManagerSiteWorkers } from "./pages/site-manager/SiteWorkers";
 import { SiteManagerSitesList } from "./pages/site-manager/SitesList";
+import { SiteManagerTransfersView } from "./pages/site-manager/TransfersView";
+import { SiteManagerUsersView } from "./pages/site-manager/UsersView";
 import { WorkerDashboard } from "./pages/worker/Dashboard";
 import { WorkerTimeLogs } from "./pages/worker/TimeLogs";
 
@@ -49,6 +51,7 @@ function App() {
                     element={<BuildingControlPage />}
                   />
                   <Route path="/storage" element={<AdminStorage />} />
+                  <Route path="/product-database" element={<AdminStorage />} />
                   <Route path="/users" element={<UserManagement />} />
                 </Routes>
               </ProtectedRoute>
@@ -74,6 +77,8 @@ function App() {
                     path="/sites/:id/building-control"
                     element={<SiteManagerBuildingControl />}
                   />
+                  <Route path="/transfers" element={<SiteManagerTransfersView />} />
+                  <Route path="/users" element={<SiteManagerUsersView />} />
                 </Routes>
               </ProtectedRoute>
             }
