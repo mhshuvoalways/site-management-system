@@ -256,10 +256,10 @@ export function AdminStorage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Storage Database
+              Product Database
             </h1>
             <p className="text-gray-600 mt-1">
-              Master inventory of all equipment and materials
+              Master inventory of all equipment and materials (Admin only)
             </p>
           </div>
           <button
