@@ -5,6 +5,7 @@ import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
 import { Site } from "../../types";
+import { capitalizeWords } from "../../utils/capitalize";
 
 export function SiteManagerSitesList() {
   const { profile } = useAuth();
@@ -75,9 +76,9 @@ export function SiteManagerSitesList() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {site.name}
+                  {capitalizeWords(site.name)}
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">{site.location}</p>
+                <p className="text-gray-600 text-sm mb-4">{capitalizeWords(site.location)}</p>
                 {site.description && (
                   <p className="text-gray-500 text-sm line-clamp-2">
                     {site.description}

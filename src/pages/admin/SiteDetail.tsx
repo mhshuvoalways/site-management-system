@@ -16,6 +16,7 @@ import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
 import { Item, Site, SiteItem } from "../../types";
+import { capitalizeWords } from "../../utils/capitalize";
 
 export function AdminSiteDetail() {
   const { id } = useParams();
@@ -275,8 +276,8 @@ export function AdminSiteDetail() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{site.name}</h1>
-            <p className="text-gray-600 mt-1">{site.location}</p>
+            <h1 className="text-3xl font-bold text-gray-900">{capitalizeWords(site.name)}</h1>
+            <p className="text-gray-600 mt-1">{capitalizeWords(site.location)}</p>
           </div>
           <button
             onClick={() => {
@@ -398,8 +399,8 @@ export function AdminSiteDetail() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900 capitalize">
-                            {siteItem.item?.name}
+                          <p className="font-medium text-gray-900">
+                            {capitalizeWords(siteItem.item?.name)}
                           </p>
                           <p className="text-sm text-gray-600">
                             Qty: {siteItem.quantity}
@@ -478,8 +479,8 @@ export function AdminSiteDetail() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900 capitalize">
-                            {siteItem.item?.name}
+                          <p className="font-medium text-gray-900">
+                            {capitalizeWords(siteItem.item?.name)}
                           </p>
                           <p className="text-sm text-gray-600">
                             Qty: {siteItem.quantity}
@@ -542,7 +543,7 @@ export function AdminSiteDetail() {
                     placeholder="Search and select an item..."
                     value={
                       selectedItemData
-                        ? `${selectedItemData.name} (${selectedItemData.item_type})`
+                        ? `${capitalizeWords(selectedItemData.name)} (${capitalizeWords(selectedItemData.item_type)})`
                         : itemSearchTerm
                     }
                     onChange={(e) => {
@@ -588,10 +589,10 @@ export function AdminSiteDetail() {
                           )}
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">
-                              {item.name}
+                              {capitalizeWords(item.name)}
                             </p>
-                            <p className="text-xs text-gray-500 capitalize">
-                              {item.item_type}
+                            <p className="text-xs text-gray-500">
+                              {capitalizeWords(item.item_type)}
                             </p>
                           </div>
                         </button>
@@ -654,7 +655,7 @@ export function AdminSiteDetail() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600">Transferring</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {currentSiteItem.item?.name}
+                  {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
                 <p className="text-sm text-gray-600">
                   Available: {currentSiteItem.quantity}
@@ -673,7 +674,7 @@ export function AdminSiteDetail() {
                   <option value="">Choose a site...</option>
                   {sites.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name}
+                      {capitalizeWords(s.name)}
                     </option>
                   ))}
                 </select>
@@ -731,7 +732,7 @@ export function AdminSiteDetail() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600">Item</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {currentSiteItem.item?.name}
+                  {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
                 <p className="text-sm text-gray-600">
                   Current: {currentSiteItem.quantity}
@@ -801,7 +802,7 @@ export function AdminSiteDetail() {
                   Are you sure you want to delete this item?
                 </p>
                 <p className="text-lg font-bold text-gray-900">
-                  {currentSiteItem.item?.name}
+                  {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
                 <p className="text-sm text-gray-600">
                   Quantity: {currentSiteItem.quantity}

@@ -15,6 +15,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { Item } from "../../types";
+import { capitalizeWords } from "../../utils/capitalize";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -398,8 +399,8 @@ export function AdminStorage() {
                           >
                             <Package className="w-5 h-5" />
                           </div>
-                          <span className="font-medium text-gray-900 capitalize">
-                            {item.name}
+                          <span className="font-medium text-gray-900">
+                            {capitalizeWords(item.name)}
                           </span>
                         </div>
                       </td>
@@ -411,7 +412,7 @@ export function AdminStorage() {
                               : "bg-green-100 text-green-700"
                           }`}
                         >
-                          {item.item_type}
+                          {capitalizeWords(item.item_type)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
