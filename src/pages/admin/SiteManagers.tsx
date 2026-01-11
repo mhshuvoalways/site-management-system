@@ -2,7 +2,7 @@ import { ArrowLeft, Plus, UserCog, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Profile, Site } from "../../types";
 
 interface SiteManager {
@@ -47,7 +47,7 @@ export function AdminSiteManagers() {
     }
 
     if (assignmentsData.data) {
-      setSiteManagers(assignmentsData.data);
+      setSiteManagers(assignmentsData.data as SiteManager[]);
 
       const assignedManagerIds = new Set(
         assignmentsData.data.map((a) => a.manager_id)

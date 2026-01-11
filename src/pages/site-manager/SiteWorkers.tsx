@@ -2,7 +2,7 @@ import { ArrowLeft, Plus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Site, Worker, WorkerAssignment } from "../../types";
 
 interface WorkerWithAssignment extends Worker {
@@ -212,11 +212,11 @@ export function SiteManagerSiteWorkers() {
                     <span className="text-sm text-gray-600">Status: </span>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        worker.status
+                        worker.status ?? ""
                       )}`}
                     >
-                      {worker.status.charAt(0).toUpperCase() +
-                        worker.status.slice(1)}
+                      {(worker.status ?? "").charAt(0).toUpperCase() +
+                        (worker.status ?? "").slice(1)}
                     </span>
                   </div>
                   {worker.phone && (
@@ -232,7 +232,7 @@ export function SiteManagerSiteWorkers() {
                       <span className="text-sm text-gray-600">Assigned: </span>
                       <span className="text-sm text-gray-900">
                         {new Date(
-                          worker.assignment.assigned_at
+                          worker.assignment.assigned_at ?? ""
                         ).toLocaleDateString()}
                         {worker.assignment.assigned_by_profile && (
                           <>

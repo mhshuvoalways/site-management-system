@@ -2,7 +2,7 @@ import { ArrowLeft, Plus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 import { Profile, Site, Worker, WorkerAssignment } from "../../types";
 
 export function SiteWorkersPage() {
@@ -197,7 +197,7 @@ export function SiteWorkersPage() {
                   </div>
                   <p className="text-xs text-gray-500 pt-2">
                     Assigned:{" "}
-                    {new Date(assignment.assigned_at).toLocaleDateString()}
+                    {new Date(assignment.assigned_at ?? "").toLocaleDateString()}
                     {assignment.assigned_by_profile && (
                       <> by {assignment.assigned_by_profile.full_name}</>
                     )}

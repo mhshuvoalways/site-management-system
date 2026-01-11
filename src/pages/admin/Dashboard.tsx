@@ -2,7 +2,7 @@ import { Building, Package, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "../../components/Layout";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../integrations/supabase/client";
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({

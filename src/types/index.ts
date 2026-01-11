@@ -4,37 +4,38 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string;
-  role: UserRole;
-  created_at: string;
-  updated_at: string;
+  role: string;
+  phone?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Site {
   id: string;
   name: string;
-  location: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
+  location: string | null;
+  description: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Item {
   id: string;
   name: string;
-  item_type: 'equipment' | 'material';
+  item_type: string;
   quantity: number;
   photo_url: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface SiteItem {
   id: string;
   site_id: string;
   item_id: string;
-  quantity: number;
-  created_at: string;
-  updated_at: string;
+  quantity: number | null;
+  created_at: string | null;
+  updated_at: string | null;
   item?: Item;
 }
 
@@ -45,7 +46,7 @@ export interface Transfer {
   to_site_id: string | null;
   quantity: number;
   transferred_by: string;
-  created_at: string;
+  created_at: string | null;
   item?: Item;
   from_site?: Site;
   to_site?: Site;
@@ -56,10 +57,10 @@ export interface BuildingControl {
   id: string;
   site_id: string;
   notes: string;
-  images: string[];
+  images: unknown;
   created_by: string;
-  created_at: string;
-  created_by_profile?: Profile;
+  created_at: string | null;
+  created_by_profile?: Partial<Profile>;
   photos?: BuildingControlPhoto[];
 }
 
@@ -67,18 +68,18 @@ export interface BuildingControlPhoto {
   id: string;
   building_control_id: string;
   photo_url: string;
-  notes: string;
-  created_at: string;
+  notes: string | null;
+  created_at: string | null;
   created_by: string;
-  created_by_profile?: Profile;
+  created_by_profile?: Partial<Profile>;
 }
 
 export interface Worker {
   id: string;
-  phone: string;
-  status: 'working' | 'off' | 'sick';
-  created_at: string;
-  updated_at: string;
+  phone: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   profile?: Profile;
 }
 
@@ -87,11 +88,11 @@ export interface WorkerAssignment {
   worker_id: string;
   site_id: string;
   assigned_by: string | null;
-  assigned_at: string;
+  assigned_at: string | null;
   removed_at: string | null;
   worker?: Worker;
   site?: Site;
-  assigned_by_profile?: Profile;
+  assigned_by_profile?: Profile | null;
 }
 
 export interface TimeLog {
@@ -108,5 +109,6 @@ export interface SiteManager {
   id: string;
   site_id: string;
   manager_id: string;
-  assigned_at: string;
+  assigned_at: string | null;
+  manager?: Profile;
 }
