@@ -662,15 +662,18 @@ export function AdminStorage() {
                   Initial Quantity
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  value={newItem.quantity}
-                  onChange={(e) =>
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={newItem.quantity === 0 ? "" : newItem.quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
                     setNewItem({
                       ...newItem,
-                      quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      quantity: value === "" ? 0 : parseInt(value, 10),
+                    });
+                  }}
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
@@ -777,15 +780,18 @@ export function AdminStorage() {
                   Quantity
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  value={currentItem.quantity}
-                  onChange={(e) =>
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={currentItem.quantity === 0 ? "" : currentItem.quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
                     setCurrentItem({
                       ...currentItem,
-                      quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      quantity: value === "" ? 0 : parseInt(value, 10),
+                    });
+                  }}
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
