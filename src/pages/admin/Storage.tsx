@@ -27,6 +27,7 @@ export function AdminStorage() {
     "all" | "equipment" | "material"
   >("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [equipmentCount, setEquipmentCount] = useState(0);
   const [materialCount, setMaterialCount] = useState(0);
@@ -59,7 +60,7 @@ export function AdminStorage() {
   useEffect(() => {
     loadItems();
     loadCounts();
-  }, [filterType, currentPage, searchTerm]);
+  }, [filterType, currentPage, searchTerm, showAll]);
 
   const loadCounts = async () => {
     const [totalResult, equipmentResult, materialResult] = await Promise.all([
@@ -81,8 +82,6 @@ export function AdminStorage() {
 
   const loadItems = async () => {
     setSearching(true);
-    const from = (currentPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
 
     let query = supabase.from("items").select("*").order("name");
 
@@ -94,7 +93,13 @@ export function AdminStorage() {
       query = query.ilike("name", `%${searchTerm}%`);
     }
 
-    const { data } = await query.range(from, to);
+    if (!showAll) {
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
+    }
+
+    const { data } = await query;
 
     setItems(data || []);
     setSearching(false);
@@ -437,114 +442,140 @@ export function AdminStorage() {
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing{" "}
-                <span className="font-medium">
-                  {Math.min(
-                    (currentPage - 1) * ITEMS_PER_PAGE + 1,
-                    filterType === "all"
-                      ? totalCount
-                      : filterType === "equipment"
-                      ? equipmentCount
-                      : materialCount
-                  )}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium">
-                  {Math.min(
-                    currentPage * ITEMS_PER_PAGE,
-                    filterType === "all"
-                      ? totalCount
-                      : filterType === "equipment"
-                      ? equipmentCount
-                      : materialCount
-                  )}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium">
-                  {filterType === "all"
-                    ? totalCount
-                    : filterType === "equipment"
-                    ? equipmentCount
-                    : materialCount}
-                </span>{" "}
-                items
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <div className="flex items-center space-x-1">
-                  {Array.from(
-                    {
-                      length: Math.ceil(
-                        (filterType === "all"
+                {showAll ? (
+                  <>
+                    Showing all{" "}
+                    <span className="font-medium">{items.length}</span> items
+                  </>
+                ) : (
+                  <>
+                    Showing{" "}
+                    <span className="font-medium">
+                      {Math.min(
+                        (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                        filterType === "all"
                           ? totalCount
                           : filterType === "equipment"
                           ? equipmentCount
-                          : materialCount) / ITEMS_PER_PAGE
-                      ),
-                    },
-                    (_, i) => i + 1
-                  )
-                    .filter(
-                      (page) =>
-                        page === 1 ||
-                        page ===
-                          Math.ceil(
+                          : materialCount
+                      )}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(
+                        currentPage * ITEMS_PER_PAGE,
+                        filterType === "all"
+                          ? totalCount
+                          : filterType === "equipment"
+                          ? equipmentCount
+                          : materialCount
+                      )}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium">
+                      {filterType === "all"
+                        ? totalCount
+                        : filterType === "equipment"
+                        ? equipmentCount
+                        : materialCount}
+                    </span>{" "}
+                    items
+                  </>
+                )}
+              </div>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => {
+                    setShowAll(!showAll);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                    showAll
+                      ? "bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white"
+                      : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  }`}
+                >
+                  {showAll ? "Paginate" : "Show All"}
+                </button>
+                {!showAll && (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <div className="flex items-center space-x-1">
+                      {Array.from(
+                        {
+                          length: Math.ceil(
                             (filterType === "all"
                               ? totalCount
                               : filterType === "equipment"
                               ? equipmentCount
                               : materialCount) / ITEMS_PER_PAGE
-                          ) ||
-                        Math.abs(page - currentPage) <= 1
-                    )
-                    .map((page, idx, arr) => (
-                      <>
-                        {idx > 0 && arr[idx - 1] !== page - 1 && (
-                          <span
-                            key={`ellipsis-${page}`}
-                            className="px-2 text-gray-500"
-                          >
-                            ...
-                          </span>
-                        )}
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
-                            currentPage === page
-                              ? "bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      </>
-                    ))}
-                </div>
-                <button
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  disabled={
-                    currentPage >=
-                    Math.ceil(
-                      (filterType === "all"
-                        ? totalCount
-                        : filterType === "equipment"
-                        ? equipmentCount
-                        : materialCount) / ITEMS_PER_PAGE
-                    )
-                  }
-                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+                          ),
+                        },
+                        (_, i) => i + 1
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page ===
+                              Math.ceil(
+                                (filterType === "all"
+                                  ? totalCount
+                                  : filterType === "equipment"
+                                  ? equipmentCount
+                                  : materialCount) / ITEMS_PER_PAGE
+                              ) ||
+                            Math.abs(page - currentPage) <= 1
+                        )
+                        .map((page, idx, arr) => (
+                          <>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <span
+                                key={`ellipsis-${page}`}
+                                className="px-2 text-gray-500"
+                              >
+                                ...
+                              </span>
+                            )}
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+                                currentPage === page
+                                  ? "bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white"
+                                  : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </>
+                        ))}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={
+                        currentPage >=
+                        Math.ceil(
+                          (filterType === "all"
+                            ? totalCount
+                            : filterType === "equipment"
+                            ? equipmentCount
+                            : materialCount) / ITEMS_PER_PAGE
+                        )
+                      }
+                      className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
