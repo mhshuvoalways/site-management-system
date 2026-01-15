@@ -239,7 +239,6 @@ export function AdminSites() {
                     setNewSite({ ...newSite, location: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div>
@@ -307,7 +306,6 @@ export function AdminSites() {
                     setEditingSite({ ...editingSite, location: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div>
