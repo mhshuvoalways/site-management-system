@@ -153,13 +153,40 @@ export function AdminStorage() {
     }
   };
 
+  const deletePhotoFromStorage = async (photoUrl: string) => {
+    try {
+      // Extract file path from the URL
+      const urlParts = photoUrl.split("/item-photos/");
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        await supabase.storage.from("item-photos").remove([filePath]);
+      }
+    } catch (error) {
+      console.error("Error deleting photo from storage:", error);
+    }
+  };
+
   const handleUpdateItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentItem) return;
 
     let photoUrl = currentItem.photo_url;
+    
+    // If uploading a new photo, delete the old one first
     if (photoFile) {
+      // Delete old photo from storage if it exists
+      const originalItem = items.find(i => i.id === currentItem.id);
+      if (originalItem?.photo_url) {
+        await deletePhotoFromStorage(originalItem.photo_url);
+      }
       photoUrl = await uploadPhoto(photoFile);
+    }
+    
+    // If photo was cleared (photoPreview is null but original had a photo)
+    const originalItem = items.find(i => i.id === currentItem.id);
+    if (!photoPreview && originalItem?.photo_url) {
+      await deletePhotoFromStorage(originalItem.photo_url);
+      photoUrl = null;
     }
 
     const { error } = await supabase
@@ -193,6 +220,14 @@ export function AdminStorage() {
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
+
+    // Find the item to get its photo URL before deleting
+    const itemToDelete = items.find(i => i.id === deleteDialog.itemId);
+    
+    // Delete photo from storage if it exists
+    if (itemToDelete?.photo_url) {
+      await deletePhotoFromStorage(itemToDelete.photo_url);
+    }
 
     const { error } = await supabase.from("items").delete().eq("id", deleteDialog.itemId);
 
