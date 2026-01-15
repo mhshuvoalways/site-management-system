@@ -676,7 +676,6 @@ export function AdminStorage() {
                   }}
                   placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
@@ -794,7 +793,6 @@ export function AdminStorage() {
                   }}
                   placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
