@@ -53,7 +53,11 @@ export function AdminSites() {
   };
 
   const openEditModal = (site: Site) => {
-    setEditingSite(site);
+    setEditingSite({
+      ...site,
+      name: capitalizeWords(site.name),
+      location: capitalizeWords(site.location),
+    });
     setShowEditSiteModal(true);
   };
 
