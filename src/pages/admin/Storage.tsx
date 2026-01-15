@@ -24,9 +24,7 @@ export function AdminStorage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<
-    "all" | "equipment" | "material"
-  >("all");
+  const [filterType, setFilterType] = useState<"all" | "equipment" | "material">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -66,14 +64,8 @@ export function AdminStorage() {
   const loadCounts = async () => {
     const [totalResult, equipmentResult, materialResult] = await Promise.all([
       supabase.from("items").select("*", { count: "exact", head: true }),
-      supabase
-        .from("items")
-        .select("*", { count: "exact", head: true })
-        .eq("item_type", "equipment"),
-      supabase
-        .from("items")
-        .select("*", { count: "exact", head: true })
-        .eq("item_type", "material"),
+      supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "equipment"),
+      supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "material"),
     ]);
 
     setTotalCount(totalResult.count || 0);
@@ -123,20 +115,14 @@ export function AdminStorage() {
     setUploading(true);
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random()
-        .toString(36)
-        .substring(2)}-${Date.now()}.${fileExt}`;
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       const filePath = fileName;
 
-      const { error: uploadError } = await supabase.storage
-        .from("item-photos")
-        .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from("item-photos").upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from("item-photos")
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from("item-photos").getPublicUrl(filePath);
 
       return data.publicUrl;
     } catch (error) {
@@ -155,9 +141,7 @@ export function AdminStorage() {
       photoUrl = await uploadPhoto(photoFile);
     }
 
-    const { error } = await supabase
-      .from("items")
-      .insert({ ...newItem, photo_url: photoUrl });
+    const { error } = await supabase.from("items").insert({ ...newItem, photo_url: photoUrl });
 
     if (!error) {
       setNewItem({ name: "", item_type: "equipment", quantity: 0 });
@@ -210,10 +194,7 @@ export function AdminStorage() {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
 
-    const { error } = await supabase
-      .from("items")
-      .delete()
-      .eq("id", deleteDialog.itemId);
+    const { error } = await supabase.from("items").delete().eq("id", deleteDialog.itemId);
 
     if (!error) {
       closeDeleteDialog();
@@ -261,12 +242,8 @@ export function AdminStorage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Product Database
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Master inventory of all equipment and materials (Admin only)
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Product Database</h1>
+            <p className="text-gray-600 mt-1">Master inventory of all equipment and materials (Admin only)</p>
           </div>
           <button
             onClick={() => setShowNewItemModal(true)}
@@ -334,13 +311,9 @@ export function AdminStorage() {
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {filterType === "all"
-                ? "No Items Yet"
-                : `No ${filterType} items yet`}
+              {filterType === "all" ? "No Items Yet" : `No ${filterType} items yet`}
             </h3>
-            <p className="text-gray-600 mb-6">
-              Add your first item to the storage database.
-            </p>
+            <p className="text-gray-600 mb-6">Add your first item to the storage database.</p>
             <button
               onClick={() => setShowNewItemModal(true)}
               className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
@@ -355,21 +328,11 @@ export function AdminStorage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Photo
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Item Name
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Type
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                      Quantity
-                    </th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
-                      Actions
-                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Photo</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Item Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Quantity</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -399,26 +362,20 @@ export function AdminStorage() {
                           >
                             <Package className="w-5 h-5" />
                           </div>
-                          <span className="font-medium text-gray-900">
-                            {capitalizeWords(item.name)}
-                          </span>
+                          <span className="font-medium text-gray-900 capitalize">{capitalizeWords(item.name)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            item.item_type === "equipment"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-green-100 text-green-700"
+                            item.item_type === "equipment" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
                           }`}
                         >
                           {capitalizeWords(item.item_type)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-gray-900 font-medium">
-                          {item.quantity}
-                        </span>
+                        <span className="text-gray-900 font-medium">{item.quantity}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
@@ -445,8 +402,7 @@ export function AdminStorage() {
               <div className="text-sm text-gray-700">
                 {showAll ? (
                   <>
-                    Showing all{" "}
-                    <span className="font-medium">{items.length}</span> items
+                    Showing all <span className="font-medium">{items.length}</span> items
                   </>
                 ) : (
                   <>
@@ -454,31 +410,19 @@ export function AdminStorage() {
                     <span className="font-medium">
                       {Math.min(
                         (currentPage - 1) * ITEMS_PER_PAGE + 1,
-                        filterType === "all"
-                          ? totalCount
-                          : filterType === "equipment"
-                          ? equipmentCount
-                          : materialCount
+                        filterType === "all" ? totalCount : filterType === "equipment" ? equipmentCount : materialCount,
                       )}
                     </span>{" "}
                     to{" "}
                     <span className="font-medium">
                       {Math.min(
                         currentPage * ITEMS_PER_PAGE,
-                        filterType === "all"
-                          ? totalCount
-                          : filterType === "equipment"
-                          ? equipmentCount
-                          : materialCount
+                        filterType === "all" ? totalCount : filterType === "equipment" ? equipmentCount : materialCount,
                       )}
                     </span>{" "}
                     of{" "}
                     <span className="font-medium">
-                      {filterType === "all"
-                        ? totalCount
-                        : filterType === "equipment"
-                        ? equipmentCount
-                        : materialCount}
+                      {filterType === "all" ? totalCount : filterType === "equipment" ? equipmentCount : materialCount}
                     </span>{" "}
                     items
                   </>
@@ -501,9 +445,7 @@ export function AdminStorage() {
                 {!showAll && (
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                       className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -516,11 +458,11 @@ export function AdminStorage() {
                             (filterType === "all"
                               ? totalCount
                               : filterType === "equipment"
-                              ? equipmentCount
-                              : materialCount) / ITEMS_PER_PAGE
+                                ? equipmentCount
+                                : materialCount) / ITEMS_PER_PAGE,
                           ),
                         },
-                        (_, i) => i + 1
+                        (_, i) => i + 1,
                       )
                         .filter(
                           (page) =>
@@ -530,18 +472,15 @@ export function AdminStorage() {
                                 (filterType === "all"
                                   ? totalCount
                                   : filterType === "equipment"
-                                  ? equipmentCount
-                                  : materialCount) / ITEMS_PER_PAGE
+                                    ? equipmentCount
+                                    : materialCount) / ITEMS_PER_PAGE,
                               ) ||
-                            Math.abs(page - currentPage) <= 1
+                            Math.abs(page - currentPage) <= 1,
                         )
                         .map((page, idx, arr) => (
                           <>
                             {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <span
-                                key={`ellipsis-${page}`}
-                                className="px-2 text-gray-500"
-                              >
+                              <span key={`ellipsis-${page}`} className="px-2 text-gray-500">
                                 ...
                               </span>
                             )}
@@ -567,8 +506,8 @@ export function AdminStorage() {
                           (filterType === "all"
                             ? totalCount
                             : filterType === "equipment"
-                            ? equipmentCount
-                            : materialCount) / ITEMS_PER_PAGE
+                              ? equipmentCount
+                              : materialCount) / ITEMS_PER_PAGE,
                         )
                       }
                       className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -586,14 +525,10 @@ export function AdminStorage() {
       {showNewItemModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Add New Item
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Item</h2>
             <form onSubmit={handleCreateItem} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Photo</label>
                 <div className="space-y-3">
                   {photoPreview ? (
                     <div className="relative">
@@ -613,37 +548,24 @@ export function AdminStorage() {
                   ) : (
                     <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#0db2ad] hover:bg-gray-50 transition">
                       <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600">
-                        Click to upload photo
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoSelect}
-                        className="hidden"
-                      />
+                      <span className="text-sm text-gray-600">Click to upload photo</span>
+                      <input type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
                     </label>
                   )}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Item Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
                 <input
                   type="text"
                   value={newItem.name}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, name: e.target.value })
-                  }
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
                   value={newItem.item_type}
                   onChange={(e) =>
@@ -659,9 +581,7 @@ export function AdminStorage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Initial Quantity
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Initial Quantity</label>
                 <input
                   type="number"
                   min={0}
@@ -706,9 +626,7 @@ export function AdminStorage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Item</h2>
             <form onSubmit={handleUpdateItem} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Photo</label>
                 <div className="space-y-3">
                   {photoPreview ? (
                     <div className="relative">
@@ -728,37 +646,24 @@ export function AdminStorage() {
                   ) : (
                     <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#0db2ad] hover:bg-gray-50 transition">
                       <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600">
-                        Click to upload photo
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoSelect}
-                        className="hidden"
-                      />
+                      <span className="text-sm text-gray-600">Click to upload photo</span>
+                      <input type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
                     </label>
                   )}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Item Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
                 <input
                   type="text"
                   value={currentItem.name}
-                  onChange={(e) =>
-                    setCurrentItem({ ...currentItem, name: e.target.value })
-                  }
+                  onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
                   value={currentItem.item_type}
                   onChange={(e) =>
@@ -774,9 +679,7 @@ export function AdminStorage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                 <input
                   type="number"
                   min={0}
