@@ -614,9 +614,8 @@ export function AdminSiteDetail() {
                     const value = e.target.value.replace(/[^0-9]/g, "");
                     setQuantity(value === "" ? 0 : parseInt(value, 10));
                   }}
-                  placeholder="1"
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
@@ -694,9 +693,8 @@ export function AdminSiteDetail() {
                     const maxQty = currentSiteItem.quantity ?? 0;
                     setQuantity(Math.min(numValue, maxQty));
                   }}
-                  placeholder="1"
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
@@ -753,9 +751,8 @@ export function AdminSiteDetail() {
                     const maxQty = currentSiteItem.quantity ?? 0;
                     setQuantity(Math.min(numValue, maxQty));
                   }}
-                  placeholder="1"
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
                 />
                 <p className="text-sm text-gray-600 mt-2">
                   Remaining: {(currentSiteItem.quantity ?? 0) - quantity}
