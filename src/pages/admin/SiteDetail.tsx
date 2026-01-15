@@ -24,6 +24,7 @@ export function AdminSiteDetail() {
   const [site, setSite] = useState<Site | null>(null);
   const [siteItems, setSiteItems] = useState<SiteItem[]>([]);
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [allSiteItems, setAllSiteItems] = useState<SiteItem[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -42,16 +43,18 @@ export function AdminSiteDetail() {
   const loadData = async () => {
     if (!id) return;
 
-    const [siteData, siteItemsData, itemsData, sitesData] = await Promise.all([
+    const [siteData, siteItemsData, itemsData, sitesData, allSiteItemsData] = await Promise.all([
       supabase.from("sites").select("*").eq("id", id).single(),
       supabase.from("site_items").select("*, item:items(*)").eq("site_id", id),
       supabase.from("items").select("*").order("name"),
       supabase.from("sites").select("*").neq("id", id).order("name"),
+      supabase.from("site_items").select("*"),
     ]);
 
     setSite(siteData.data);
     setSiteItems(siteItemsData.data || []);
     setAllItems(itemsData.data || []);
+    setAllSiteItems(allSiteItemsData.data || []);
     setSites(sitesData.data || []);
     setLoading(false);
   };
@@ -264,6 +267,18 @@ export function AdminSiteDetail() {
   );
 
   const selectedItemData = allItems.find((item) => item.id === selectedItem);
+
+  // Calculate available stock for selected item (total quantity - already allocated to sites)
+  const getAvailableStock = (itemId: string) => {
+    const item = allItems.find((i) => i.id === itemId);
+    if (!item) return 0;
+    const allocatedQuantity = allSiteItems
+      .filter((si) => si.item_id === itemId)
+      .reduce((sum, si) => sum + (si.quantity ?? 0), 0);
+    return Math.max(0, item.quantity - allocatedQuantity);
+  };
+
+  const availableStock = selectedItem ? getAvailableStock(selectedItem) : 0;
 
   return (
     <Layout>
@@ -563,56 +578,68 @@ export function AdminSiteDetail() {
                         No items found
                       </div>
                     ) : (
-                      filteredItems.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedItem(item.id);
-                            setItemSearchTerm("");
-                            setShowItemDropdown(false);
-                          }}
-                          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center space-x-3 ${
-                            selectedItem === item.id ? "bg-blue-50" : ""
-                          }`}
-                        >
-                          {item.photo_url ? (
-                            <img
-                              src={item.photo_url}
-                              alt={item.name}
-                              className="w-10 h-10 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="bg-gray-100 p-2 rounded-lg">
-                              <Package className="w-6 h-6 text-gray-400" />
+                      filteredItems.map((item) => {
+                        const itemAvailableStock = getAvailableStock(item.id);
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedItem(item.id);
+                              setItemSearchTerm("");
+                              setShowItemDropdown(false);
+                              setQuantity(Math.min(1, itemAvailableStock));
+                            }}
+                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center space-x-3 ${
+                              selectedItem === item.id ? "bg-blue-50" : ""
+                            }`}
+                          >
+                            {item.photo_url ? (
+                              <img
+                                src={item.photo_url}
+                                alt={item.name}
+                                className="w-10 h-10 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="bg-gray-100 p-2 rounded-lg">
+                                <Package className="w-6 h-6 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900">
+                                {capitalizeWords(item.name)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {capitalizeWords(item.item_type)} • Available: {itemAvailableStock}
+                              </p>
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">
-                              {capitalizeWords(item.name)}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {capitalizeWords(item.item_type)}
-                            </p>
-                          </div>
-                        </button>
-                      ))
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
+                  Quantity {selectedItem && <span className="text-gray-500">(Available: {availableStock})</span>}
                 </label>
                 <input
                   type="number"
                   min={0}
+                  max={availableStock}
                   value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 0)}
+                  onChange={(e) => {
+                    const numValue = parseInt(e.target.value, 10) || 0;
+                    setQuantity(Math.min(numValue, availableStock));
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
+                  disabled={availableStock === 0 && selectedItem !== ""}
                 />
+                {selectedItem && availableStock === 0 && (
+                  <p className="text-sm text-red-600 mt-1">No stock available for this item</p>
+                )}
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
