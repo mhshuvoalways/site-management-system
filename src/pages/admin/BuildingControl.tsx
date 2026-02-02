@@ -1,9 +1,11 @@
 import {
   ArrowLeft,
   Calendar,
+  Edit,
   FileText,
   Image as ImageIcon,
   Plus,
+  Trash2,
   Upload,
   User,
   X,
@@ -32,7 +34,7 @@ export function BuildingControlPage() {
   const [newReport, setNewReport] = useState({ notes: "" });
   const [photoUploads, setPhotoUploads] = useState<PhotoUpload[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState<{
+  const [deletePhotoDialog, setDeletePhotoDialog] = useState<{
     isOpen: boolean;
     photoId: string;
     photoUrl: string;
@@ -41,7 +43,18 @@ export function BuildingControlPage() {
     photoId: "",
     photoUrl: "",
   });
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
+  const [editingReport, setEditingReport] = useState<BuildingControl | null>(null);
+  const [editNotes, setEditNotes] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteReportDialog, setDeleteReportDialog] = useState<{
+    isOpen: boolean;
+    report: BuildingControl | null;
+  }>({
+    isOpen: false,
+    report: null,
+  });
+  const [isDeletingReport, setIsDeletingReport] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -160,19 +173,19 @@ export function BuildingControlPage() {
     loadData();
   };
 
-  const openDeleteDialog = (photoId: string, photoUrl: string) => {
-    setDeleteDialog({ isOpen: true, photoId, photoUrl });
+  const openDeletePhotoDialog = (photoId: string, photoUrl: string) => {
+    setDeletePhotoDialog({ isOpen: true, photoId, photoUrl });
   };
 
-  const closeDeleteDialog = () => {
-    setDeleteDialog({ isOpen: false, photoId: "", photoUrl: "" });
-    setIsDeleting(false);
+  const closeDeletePhotoDialog = () => {
+    setDeletePhotoDialog({ isOpen: false, photoId: "", photoUrl: "" });
+    setIsDeletingPhoto(false);
   };
 
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true);
+  const handleConfirmDeletePhoto = async () => {
+    setIsDeletingPhoto(true);
 
-    const fileName = deleteDialog.photoUrl.split(
+    const fileName = deletePhotoDialog.photoUrl.split(
       "/building-control-photos/"
     )[1];
     if (fileName) {
@@ -182,14 +195,94 @@ export function BuildingControlPage() {
     const { error } = await supabase
       .from("building_control_photos")
       .delete()
-      .eq("id", deleteDialog.photoId);
+      .eq("id", deletePhotoDialog.photoId);
 
     if (!error) {
-      closeDeleteDialog();
+      closeDeletePhotoDialog();
       loadData();
     } else {
       alert("Failed to delete photo: " + error.message);
-      closeDeleteDialog();
+      closeDeletePhotoDialog();
+    }
+  };
+
+  const openEditReport = (report: BuildingControl) => {
+    setEditingReport(report);
+    setEditNotes(report.notes);
+  };
+
+  const closeEditReport = () => {
+    setEditingReport(null);
+    setEditNotes("");
+    setIsUpdating(false);
+  };
+
+  const handleUpdateReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReport) return;
+
+    setIsUpdating(true);
+
+    const { error } = await supabase
+      .from("building_control")
+      .update({ notes: editNotes })
+      .eq("id", editingReport.id);
+
+    if (!error) {
+      closeEditReport();
+      loadData();
+    } else {
+      alert("Failed to update report: " + error.message);
+      setIsUpdating(false);
+    }
+  };
+
+  const openDeleteReportDialog = (report: BuildingControl) => {
+    setDeleteReportDialog({ isOpen: true, report });
+  };
+
+  const closeDeleteReportDialog = () => {
+    setDeleteReportDialog({ isOpen: false, report: null });
+    setIsDeletingReport(false);
+  };
+
+  const handleConfirmDeleteReport = async () => {
+    if (!deleteReportDialog.report) return;
+
+    setIsDeletingReport(true);
+
+    // Delete all photos from storage first
+    if (deleteReportDialog.report.photos && deleteReportDialog.report.photos.length > 0) {
+      const fileNames = deleteReportDialog.report.photos
+        .map((photo) => {
+          const parts = photo.photo_url.split("/building-control-photos/");
+          return parts.length > 1 ? parts[1] : null;
+        })
+        .filter((name): name is string => name !== null);
+
+      if (fileNames.length > 0) {
+        await supabase.storage.from("building-control-photos").remove(fileNames);
+      }
+    }
+
+    // Delete photos from database (cascade should handle this, but being explicit)
+    await supabase
+      .from("building_control_photos")
+      .delete()
+      .eq("building_control_id", deleteReportDialog.report.id);
+
+    // Delete the report
+    const { error } = await supabase
+      .from("building_control")
+      .delete()
+      .eq("id", deleteReportDialog.report.id);
+
+    if (!error) {
+      closeDeleteReportDialog();
+      loadData();
+    } else {
+      alert("Failed to delete report: " + error.message);
+      closeDeleteReportDialog();
     }
   };
 
@@ -285,6 +378,22 @@ export function BuildingControlPage() {
                       </div>
                     </div>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => openEditReport(report)}
+                      className="p-2 text-gray-600 hover:text-[#0db2ad] hover:bg-gray-100 rounded-lg transition"
+                      title="Edit Report"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteReportDialog(report)}
+                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Delete Report"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <p className="text-gray-900 whitespace-pre-wrap">
@@ -312,7 +421,7 @@ export function BuildingControlPage() {
                             />
                             <button
                               onClick={() =>
-                                openDeleteDialog(photo.id, photo.photo_url)
+                                openDeletePhotoDialog(photo.id, photo.photo_url)
                               }
                               className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
                             >
@@ -455,15 +564,68 @@ export function BuildingControlPage() {
         </div>
       )}
 
+      {editingReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Edit Building Control Report
+            </h2>
+            <form onSubmit={handleUpdateReport} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Report Notes
+                </label>
+                <textarea
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                  rows={6}
+                  placeholder="Enter building control notes..."
+                  required
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={closeEditReport}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                >
+                  {isUpdating ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <ConfirmDialog
-        isOpen={deleteDialog.isOpen}
+        isOpen={deletePhotoDialog.isOpen}
         title="Delete Photo"
         message="Are you sure you want to delete this photo?"
         confirmLabel="Yes, Delete"
         cancelLabel="No, Cancel"
-        onConfirm={handleConfirmDelete}
-        onCancel={closeDeleteDialog}
-        isProcessing={isDeleting}
+        onConfirm={handleConfirmDeletePhoto}
+        onCancel={closeDeletePhotoDialog}
+        isProcessing={isDeletingPhoto}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteReportDialog.isOpen}
+        title="Delete Report"
+        message="Are you sure you want to delete this entire report? All associated photos will also be deleted."
+        confirmLabel="Yes, Delete"
+        cancelLabel="No, Cancel"
+        onConfirm={handleConfirmDeleteReport}
+        onCancel={closeDeleteReportDialog}
+        isProcessing={isDeletingReport}
       />
     </Layout>
   );
