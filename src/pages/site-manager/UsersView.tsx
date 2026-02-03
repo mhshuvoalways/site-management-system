@@ -1,6 +1,7 @@
-import { User, UserCog, Users } from "lucide-react";
+import { Key, User, UserCog, Users } from "lucide-react";
 import { capitalizeWords } from "../../utils/capitalize";
 import { useEffect, useState } from "react";
+import { ChangePasswordModal } from "../../components/ChangePasswordModal";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { Profile } from "../../types";
@@ -9,6 +10,7 @@ export function SiteManagerUsersView() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<string>("all");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -66,11 +68,20 @@ export function SiteManagerUsersView() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Users</h1>
-          <p className="text-gray-600 mt-1">
-            View all users in the system
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Users</h1>
+            <p className="text-gray-600 mt-1">
+              View all users in the system
+            </p>
+          </div>
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            className="inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+          >
+            <Key className="w-5 h-5" />
+            <span>Change Password</span>
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -169,6 +180,11 @@ export function SiteManagerUsersView() {
           </div>
         )}
       </div>
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </Layout>
   );
 }

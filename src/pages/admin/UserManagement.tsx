@@ -1,12 +1,14 @@
-import { Edit2, Plus, Trash2, User, UserCog, Users } from "lucide-react";
+import { Edit2, Key, Plus, Trash2, User, UserCog, Users } from "lucide-react";
 import { capitalizeWords } from "../../utils/capitalize";
 import { useEffect, useState } from "react";
+import { ChangePasswordModal } from "../../components/ChangePasswordModal";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { Profile } from "../../types";
 
 export function UserManagement() {
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
@@ -278,13 +280,22 @@ export function UserManagement() {
               Manage admins, site managers, and workers
             </p>
           </div>
-          <button
-            onClick={() => setShowNewModal(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add User</span>
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            >
+              <Key className="w-5 h-5" />
+              <span>Change Password</span>
+            </button>
+            <button
+              onClick={() => setShowNewModal(true)}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add User</span>
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -636,6 +647,11 @@ export function UserManagement() {
         onConfirm={handleConfirmDelete}
         onCancel={closeDeleteDialog}
         isProcessing={isDeleting}
+      />
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
       />
     </Layout>
   );
