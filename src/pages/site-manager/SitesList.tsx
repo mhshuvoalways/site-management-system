@@ -1,4 +1,4 @@
-import { Building, Search, Package } from "lucide-react";
+import { Building, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "../../components/Layout";
@@ -95,9 +95,9 @@ export function SiteManagerSitesList() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search sites by name or location..."
@@ -165,7 +165,7 @@ export function SiteManagerSitesList() {
                     {(!site.items || site.items.length === 0) ? (
                       <p className="text-sm text-gray-400 italic">No items assigned</p>
                     ) : (
-                      <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+                      <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
                         {(site.items || []).map((siteItem) => {
                           const itemName = capitalizeWords(siteItem.item?.name || "Unknown");
                           const isMatch = itemSearchTerm.trim() && 
