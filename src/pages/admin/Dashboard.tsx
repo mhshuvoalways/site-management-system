@@ -106,7 +106,7 @@ export function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Quick Actions
+            Quick Actions
             </h2>
             <div className="space-y-3">
               <Link
@@ -116,7 +116,7 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <Building className="w-5 h-5 text-[#0db2ad]" />
                   <span className="font-medium text-gray-900">
-                    Manage Sites
+                    Sites
                   </span>
                 </div>
                 <span className="text-gray-400">→</span>
@@ -128,7 +128,19 @@ export function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <Package className="w-5 h-5 text-[#567fca]" />
                   <span className="font-medium text-gray-900">
-                    Storage Database
+                    Storage
+                  </span>
+                </div>
+                <span className="text-gray-400">→</span>
+              </Link>
+              <Link
+                to="/admin/users"
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+              >
+                <div className="flex items-center space-x-3">
+                  <Users className="w-5 h-5 text-orange-500" />
+                  <span className="font-medium text-gray-900">
+                    Users
                   </span>
                 </div>
                 <span className="text-gray-400">→</span>
@@ -148,13 +160,13 @@ export function AdminDashboard() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Sites Active</span>
+                <span className="text-gray-600">Sites Available</span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                   {stats.totalSites}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Workers Online</span>
+                <span className="text-gray-600">Workers Available</span>
                 <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
                   {stats.totalWorkers}
                 </span>
