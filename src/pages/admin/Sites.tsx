@@ -1,4 +1,4 @@
-import { Building, MapPin, Plus, Trash2, Edit } from "lucide-react";
+import { Building, MapPin, Plus, Trash2, Edit, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -10,6 +10,7 @@ import { capitalizeWords } from "../../utils/capitalize";
 export function AdminSites() {
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showNewSiteModal, setShowNewSiteModal] = useState(false);
   const [showEditSiteModal, setShowEditSiteModal] = useState(false);
   const [newSite, setNewSite] = useState({
@@ -28,6 +29,12 @@ export function AdminSites() {
     siteName: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const filteredSites = sites.filter(
+    (site) =>
+      site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (site.location?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  );
 
   useEffect(() => {
     loadSites();
@@ -136,7 +143,18 @@ export function AdminSites() {
           </button>
         </div>
 
-        {sites.length === 0 ? (
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search sites by name or location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+          />
+        </div>
+
+        {filteredSites.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <Building className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -155,7 +173,7 @@ export function AdminSites() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sites.map((site) => (
+            {filteredSites.map((site) => (
               <div
                 key={site.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"
