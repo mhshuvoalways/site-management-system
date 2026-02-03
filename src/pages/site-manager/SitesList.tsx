@@ -120,14 +120,14 @@ export function SiteManagerSitesList() {
                     <div className="flex items-center gap-2 mb-3">
                       <Package className="w-4 h-4 text-gray-500" />
                       <span className="text-sm font-medium text-gray-700">
-                        Assigned Items ({site.items.length})
+                        Assigned Items ({(site.items || []).length})
                       </span>
                     </div>
-                    {site.items.length === 0 ? (
+                    {(!site.items || site.items.length === 0) ? (
                       <p className="text-sm text-gray-400 italic">No items assigned</p>
                     ) : (
                       <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
-                        {site.items.map((siteItem) => (
+                        {(site.items || []).map((siteItem) => (
                           <div
                             key={siteItem.id}
                             className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm"
