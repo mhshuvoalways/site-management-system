@@ -166,7 +166,17 @@ export function SiteManagerSitesList() {
                       <p className="text-sm text-gray-400 italic">No items assigned</p>
                     ) : (
                       <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
-                        {(site.items || []).map((siteItem) => {
+                        {(site.items || [])
+                          .slice()
+                          .sort((a, b) => {
+                            if (!itemSearchTerm.trim()) return 0;
+                            const aMatch = a.item?.name?.toLowerCase().includes(itemSearchTerm.toLowerCase());
+                            const bMatch = b.item?.name?.toLowerCase().includes(itemSearchTerm.toLowerCase());
+                            if (aMatch && !bMatch) return -1;
+                            if (!aMatch && bMatch) return 1;
+                            return 0;
+                          })
+                          .map((siteItem) => {
                           const itemName = capitalizeWords(siteItem.item?.name || "Unknown");
                           const isMatch = itemSearchTerm.trim() && 
                             siteItem.item?.name?.toLowerCase().includes(itemSearchTerm.toLowerCase());
