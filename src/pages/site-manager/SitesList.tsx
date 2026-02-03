@@ -95,7 +95,7 @@ export function SiteManagerSitesList() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
