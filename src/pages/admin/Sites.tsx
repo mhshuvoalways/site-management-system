@@ -1,14 +1,18 @@
-import { Building, MapPin, Plus, Trash2, Edit, Search } from "lucide-react";
+import { Building, MapPin, Plus, Trash2, Edit, Search, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
-import { Site } from "../../types";
+import { Site, SiteItem, Item } from "../../types";
 import { capitalizeWords } from "../../utils/capitalize";
 
+interface SiteWithItems extends Site {
+  items: (SiteItem & { item: Item })[];
+}
+
 export function AdminSites() {
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<SiteWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewSiteModal, setShowNewSiteModal] = useState(false);
@@ -41,9 +45,18 @@ export function AdminSites() {
   }, []);
 
   const loadSites = async () => {
-    const { data } = await supabase.from("sites").select("*").order("name");
+    const { data: sitesData } = await supabase.from("sites").select("*").order("name");
+    
+    const { data: siteItemsData } = await supabase
+      .from("site_items")
+      .select("*, item:items(*)");
 
-    setSites(data || []);
+    const sitesWithItems: SiteWithItems[] = (sitesData || []).map((site) => ({
+      ...site,
+      items: (siteItemsData || []).filter((si) => si.site_id === site.id) as (SiteItem & { item: Item })[],
+    }));
+
+    setSites(sitesWithItems);
     setLoading(false);
   };
 
@@ -172,7 +185,7 @@ export function AdminSites() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredSites.map((site) => (
               <div
                 key={site.id}
@@ -210,6 +223,35 @@ export function AdminSites() {
                       {site.description}
                     </p>
                   )}
+                  
+                  {/* Assigned Items Section */}
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Assigned Items ({site.items.length})
+                      </span>
+                    </div>
+                    {site.items.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">No items assigned</p>
+                    ) : (
+                      <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+                        {site.items.map((siteItem) => (
+                          <div
+                            key={siteItem.id}
+                            className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm"
+                          >
+                            <span className="text-gray-700 truncate flex-1">
+                              {capitalizeWords(siteItem.item?.name || "Unknown")}
+                            </span>
+                            <span className="text-gray-500 font-medium ml-2">
+                              x{siteItem.quantity ?? 0}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
                   <Link

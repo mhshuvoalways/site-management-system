@@ -1,15 +1,19 @@
-import { Building, Search } from "lucide-react";
+import { Building, Search, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
-import { Site } from "../../types";
+import { Site, SiteItem, Item } from "../../types";
 import { capitalizeWords } from "../../utils/capitalize";
+
+interface SiteWithItems extends Site {
+  items: (SiteItem & { item: Item })[];
+}
 
 export function SiteManagerSitesList() {
   const { profile } = useAuth();
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<SiteWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -26,13 +30,21 @@ export function SiteManagerSitesList() {
   const loadSites = async () => {
     if (!profile) return;
 
-    // Site managers can see ALL sites - no assignment needed
-    const { data } = await supabase
+    const { data: sitesData } = await supabase
       .from("sites")
       .select("*")
       .order("name");
 
-    setSites(data || []);
+    const { data: siteItemsData } = await supabase
+      .from("site_items")
+      .select("*, item:items(*)");
+
+    const sitesWithItems: SiteWithItems[] = (sitesData || []).map((site) => ({
+      ...site,
+      items: (siteItemsData || []).filter((si) => si.site_id === site.id) as (SiteItem & { item: Item })[],
+    }));
+
+    setSites(sitesWithItems);
     setLoading(false);
   };
 
@@ -78,31 +90,69 @@ export function SiteManagerSitesList() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredSites.map((site) => (
-              <Link
+              <div
                 key={site.id}
-                to={`/site-manager/sites/${site.id}`}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-6 border border-gray-100"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 overflow-hidden"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="bg-gradient-to-br from-[#0db2ad] to-[#567fca] p-3 rounded-lg">
-                    <Building className="w-6 h-6 text-white" />
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="bg-gradient-to-br from-[#0db2ad] to-[#567fca] p-3 rounded-lg">
+                      <Building className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                      Active
+                    </span>
                   </div>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                    Active
-                  </span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {capitalizeWords(site.name)}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4">{capitalizeWords(site.location)}</p>
+                  {site.description && (
+                    <p className="text-gray-500 text-sm line-clamp-2 mb-4">
+                      {site.description}
+                    </p>
+                  )}
+                  
+                  {/* Assigned Items Section */}
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Assigned Items ({site.items.length})
+                      </span>
+                    </div>
+                    {site.items.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">No items assigned</p>
+                    ) : (
+                      <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+                        {site.items.map((siteItem) => (
+                          <div
+                            key={siteItem.id}
+                            className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm"
+                          >
+                            <span className="text-gray-700 truncate flex-1">
+                              {capitalizeWords(siteItem.item?.name || "Unknown")}
+                            </span>
+                            <span className="text-gray-500 font-medium ml-2">
+                              x{siteItem.quantity ?? 0}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {capitalizeWords(site.name)}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">{capitalizeWords(site.location)}</p>
-                {site.description && (
-                  <p className="text-gray-500 text-sm line-clamp-2">
-                    {site.description}
-                  </p>
-                )}
-              </Link>
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                  <Link
+                    to={`/site-manager/sites/${site.id}`}
+                    className="text-[#0db2ad] hover:text-[#567fca] font-medium text-sm transition"
+                  >
+                    View Details →
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
