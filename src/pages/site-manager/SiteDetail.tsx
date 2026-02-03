@@ -4,6 +4,7 @@ import {
   FileText,
   Minus,
   Package,
+  Plus,
   Search,
   Trash2,
   Users,
@@ -13,7 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
-import { Site, SiteItem } from "../../types";
+import { Item, Site, SiteItem } from "../../types";
 import { capitalizeWords } from "../../utils/capitalize";
 
 export function SiteManagerSiteDetail() {
@@ -21,11 +22,17 @@ export function SiteManagerSiteDetail() {
   const { profile } = useAuth();
   const [site, setSite] = useState<Site | null>(null);
   const [siteItems, setSiteItems] = useState<SiteItem[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
+  const [allSiteItems, setAllSiteItems] = useState<SiteItem[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showReduceModal, setShowReduceModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<string>("");
+  const [itemSearchTerm, setItemSearchTerm] = useState("");
+  const [showItemDropdown, setShowItemDropdown] = useState(false);
   const [currentSiteItem, setCurrentSiteItem] = useState<SiteItem | null>(null);
   const [equipmentSearchTerm, setEquipmentSearchTerm] = useState("");
   const [materialsSearchTerm, setMaterialsSearchTerm] = useState("");
@@ -39,17 +46,90 @@ export function SiteManagerSiteDetail() {
   const loadData = async () => {
     if (!id) return;
 
-    const [siteData, siteItemsData, sitesData] = await Promise.all([
+    const [siteData, siteItemsData, itemsData, sitesData, allSiteItemsData] = await Promise.all([
       supabase.from("sites").select("*").eq("id", id).single(),
       supabase.from("site_items").select("*, item:items(*)").eq("site_id", id),
+      supabase.from("items").select("*").order("name"),
       supabase.from("sites").select("*").neq("id", id).order("name"),
+      supabase.from("site_items").select("*"),
     ]);
 
     setSite(siteData.data);
     setSiteItems(siteItemsData.data || []);
+    setAllItems(itemsData.data || []);
+    setAllSiteItems(allSiteItemsData.data || []);
     setSites(sitesData.data || []);
     setLoading(false);
   };
+
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !selectedItem) return;
+
+    try {
+      const { data: existing, error: selectError } = await supabase
+        .from("site_items")
+        .select("*")
+        .eq("site_id", id)
+        .eq("item_id", selectedItem)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error("Error checking existing item:", selectError);
+        alert(`Error: ${selectError.message}`);
+        return;
+      }
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("site_items")
+          .update({ quantity: (existing.quantity ?? 0) + quantity })
+          .eq("id", existing.id);
+
+        if (updateError) {
+          console.error("Error updating item:", updateError);
+          alert(`Error updating item: ${updateError.message}`);
+          return;
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from("site_items")
+          .insert({ site_id: id, item_id: selectedItem, quantity });
+
+        if (insertError) {
+          console.error("Error inserting item:", insertError);
+          alert(`Error adding item: ${insertError.message}`);
+          return;
+        }
+      }
+
+      setShowAddModal(false);
+      setSelectedItem("");
+      setItemSearchTerm("");
+      setShowItemDropdown(false);
+      setQuantity(1);
+      loadData();
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("An unexpected error occurred");
+    }
+  };
+
+  // Calculate available stock for selected item (total quantity - already allocated to sites)
+  const getAvailableStock = (itemId: string) => {
+    const item = allItems.find((i) => i.id === itemId);
+    if (!item) return 0;
+    const allocatedQuantity = allSiteItems
+      .filter((si) => si.item_id === itemId)
+      .reduce((sum, si) => sum + (si.quantity ?? 0), 0);
+    return Math.max(0, item.quantity - allocatedQuantity);
+  };
+
+  const availableStock = selectedItem ? getAvailableStock(selectedItem) : 0;
+  const selectedItemData = allItems.find((item) => item.id === selectedItem);
+  const filteredItems = allItems.filter((item) =>
+    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase())
+  );
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,6 +262,19 @@ export function SiteManagerSiteDetail() {
             <h1 className="text-3xl font-bold text-gray-900">{capitalizeWords(site.name)}</h1>
             <p className="text-gray-600 mt-1">{capitalizeWords(site.location)}</p>
           </div>
+          <button
+            onClick={() => {
+              setShowAddModal(true);
+              setItemSearchTerm("");
+              setSelectedItem("");
+              setShowItemDropdown(false);
+              setQuantity(1);
+            }}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Item</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -406,6 +499,139 @@ export function SiteManagerSiteDetail() {
           </div>
         </div>
       </div>
+
+      {showAddModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowItemDropdown(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Add Item to Site
+            </h2>
+            <form onSubmit={handleAddItem} className="space-y-4">
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Item
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                  <input
+                    type="text"
+                    placeholder="Search and select an item..."
+                    value={
+                      selectedItemData
+                        ? `${capitalizeWords(selectedItemData.name)} (${capitalizeWords(selectedItemData.item_type)})`
+                        : itemSearchTerm
+                    }
+                    onChange={(e) => {
+                      setItemSearchTerm(e.target.value);
+                      setSelectedItem("");
+                      setShowItemDropdown(true);
+                    }}
+                    onFocus={() => setShowItemDropdown(true)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required={!selectedItem}
+                  />
+                </div>
+                {showItemDropdown && (
+                  <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredItems.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        No items found
+                      </div>
+                    ) : (
+                      filteredItems.map((item) => {
+                        const itemAvailableStock = getAvailableStock(item.id);
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedItem(item.id);
+                              setItemSearchTerm("");
+                              setShowItemDropdown(false);
+                              setQuantity(Math.min(1, itemAvailableStock));
+                            }}
+                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center space-x-3 ${
+                              selectedItem === item.id ? "bg-blue-50" : ""
+                            }`}
+                          >
+                            {item.photo_url ? (
+                              <img
+                                src={item.photo_url}
+                                alt={item.name}
+                                className="w-10 h-10 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="bg-gray-100 p-2 rounded-lg">
+                                <Package className="w-6 h-6 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900">
+                                {capitalizeWords(item.name)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {capitalizeWords(item.item_type)} • Available: {itemAvailableStock}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantity {selectedItem && <span className="text-gray-500">(Available: {availableStock})</span>}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={availableStock}
+                  value={quantity}
+                  onChange={(e) => {
+                    const numValue = parseInt(e.target.value, 10) || 0;
+                    setQuantity(Math.min(numValue, availableStock));
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                  required
+                  disabled={availableStock === 0 && selectedItem !== ""}
+                />
+                {selectedItem && availableStock === 0 && (
+                  <p className="text-sm text-red-600 mt-1">No stock available for this item</p>
+                )}
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setItemSearchTerm("");
+                    setShowItemDropdown(false);
+                    setSelectedItem("");
+                    setQuantity(1);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+                >
+                  Add Item
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showTransferModal && currentSiteItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
