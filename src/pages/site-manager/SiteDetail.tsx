@@ -49,7 +49,7 @@ export function SiteManagerSiteDetail() {
     const [siteData, siteItemsData, itemsData, sitesData, allSiteItemsData] = await Promise.all([
       supabase.from("sites").select("*").eq("id", id).single(),
       supabase.from("site_items").select("*, item:items(*)").eq("site_id", id),
-      supabase.from("items").select("*").order("name"),
+      supabase.from("items").select("*").is("deleted_at", null).order("name"),
       supabase.from("sites").select("*").neq("id", id).order("name"),
       supabase.from("site_items").select("*"),
     ]);
