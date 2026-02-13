@@ -414,7 +414,7 @@ export function AdminSiteDetail() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900 capitalize">
+                          <p className="font-medium text-gray-900">
                             {capitalizeWords(siteItem.item?.name)}
                           </p>
                           <p className="text-sm text-gray-600">
@@ -494,7 +494,7 @@ export function AdminSiteDetail() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900 capitalize">
+                          <p className="font-medium text-gray-900">
                             {capitalizeWords(siteItem.item?.name)}
                           </p>
                           <p className="text-sm text-gray-600">
