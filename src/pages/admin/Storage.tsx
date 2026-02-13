@@ -400,7 +400,7 @@ export function AdminStorage() {
                           >
                             <Package className="w-5 h-5" />
                           </div>
-                          <span className="font-medium text-gray-900 capitalize">{capitalizeWords(item.name)}</span>
+                          <span className="font-medium text-gray-900">{capitalizeWords(item.name)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
