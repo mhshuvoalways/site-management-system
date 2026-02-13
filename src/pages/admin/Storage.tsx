@@ -55,6 +55,8 @@ export function AdminStorage() {
     itemName: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isEditSaving, setIsEditSaving] = useState(false);
 
   useEffect(() => {
     loadItems();
@@ -135,6 +137,7 @@ export function AdminStorage() {
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsCreating(true);
 
     let photoUrl = null;
     if (photoFile) {
@@ -151,6 +154,7 @@ export function AdminStorage() {
       loadItems();
       loadCounts();
     }
+    setIsCreating(false);
   };
 
   const deletePhotoFromStorage = async (photoUrl: string) => {
@@ -169,12 +173,11 @@ export function AdminStorage() {
   const handleUpdateItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentItem) return;
+    setIsEditSaving(true);
 
     let photoUrl = currentItem.photo_url;
     
-    // If uploading a new photo, delete the old one first
     if (photoFile) {
-      // Delete old photo from storage if it exists
       const originalItem = items.find(i => i.id === currentItem.id);
       if (originalItem?.photo_url) {
         await deletePhotoFromStorage(originalItem.photo_url);
@@ -182,7 +185,6 @@ export function AdminStorage() {
       photoUrl = await uploadPhoto(photoFile);
     }
     
-    // If photo was cleared (photoPreview is null but original had a photo)
     const originalItem = items.find(i => i.id === currentItem.id);
     if (!photoPreview && originalItem?.photo_url) {
       await deletePhotoFromStorage(originalItem.photo_url);
@@ -207,6 +209,7 @@ export function AdminStorage() {
       loadItems();
       loadCounts();
     }
+    setIsEditSaving(false);
   };
 
   const openDeleteDialog = (id: string, name: string) => {
@@ -638,16 +641,17 @@ export function AdminStorage() {
                     setShowNewItemModal(false);
                     clearPhoto();
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  disabled={isCreating || uploading}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={uploading}
+                  disabled={isCreating || uploading}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploading ? "Uploading..." : "Add Item"}
+                  {isCreating || uploading ? "Adding..." : "Add Item"}
                 </button>
               </div>
             </form>
@@ -737,16 +741,17 @@ export function AdminStorage() {
                     setCurrentItem(null);
                     clearPhoto();
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  disabled={isEditSaving || uploading}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={uploading}
+                  disabled={isEditSaving || uploading}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploading ? "Uploading..." : "Update Item"}
+                  {isEditSaving || uploading ? "Saving..." : "Update Item"}
                 </button>
               </div>
             </form>
