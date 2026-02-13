@@ -34,6 +34,8 @@ export function AdminSites() {
     siteName: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Filter sites by name/location
   const filteredSites = sites.filter(
@@ -90,6 +92,7 @@ export function AdminSites() {
 
   const handleCreateSite = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsCreating(true);
 
     const { error } = await supabase.from("sites").insert(newSite);
 
@@ -98,6 +101,7 @@ export function AdminSites() {
       setShowNewSiteModal(false);
       loadSites();
     }
+    setIsCreating(false);
   };
 
   const openEditModal = (site: Site) => {
@@ -112,6 +116,7 @@ export function AdminSites() {
   const handleEditSite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSite) return;
+    setIsEditing(true);
 
     const { error } = await supabase
       .from("sites")
@@ -127,6 +132,7 @@ export function AdminSites() {
       setShowEditSiteModal(false);
       loadSites();
     }
+    setIsEditing(false);
   };
 
   const openDeleteDialog = (id: string, name: string) => {
@@ -376,15 +382,17 @@ export function AdminSites() {
                 <button
                   type="button"
                   onClick={() => setShowNewSiteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  disabled={isCreating}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+                  disabled={isCreating}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Site
+                  {isCreating ? "Creating..." : "Create Site"}
                 </button>
               </div>
             </form>
@@ -446,15 +454,17 @@ export function AdminSites() {
                     setShowEditSiteModal(false);
                     setEditingSite(null);
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  disabled={isEditing}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+                  disabled={isEditing}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Update Site
+                  {isEditing ? "Updating..." : "Update Site"}
                 </button>
               </div>
             </form>
