@@ -81,28 +81,28 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            <div className="hidden md:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-0.5">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.to;
                 return (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+                    className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg transition text-sm ${
                       isActive
                         ? "bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    <link.icon className="w-5 h-5" />
+                    <link.icon className="w-4 h-4" />
                     <span className="font-medium">{link.label}</span>
                   </Link>
                 );
               })}
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:block text-right">
+            <div className="flex items-center space-x-3">
+              <div className="hidden lg:block text-right">
                 <p className="text-sm font-medium text-gray-900">
                   {profile?.full_name}
                 </p>
@@ -110,14 +110,14 @@ export function Layout({ children }: LayoutProps) {
               </div>
               <button
                 onClick={handleSignOut}
-                className="hidden md:flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                className="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 <span>Logout</span>
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
               >
                 {mobileMenuOpen ? (
                   <X className="w-6 h-6" />
@@ -130,7 +130,7 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="lg:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.to;
