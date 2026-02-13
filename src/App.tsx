@@ -10,6 +10,7 @@ import { AdminSiteManagers } from "./pages/admin/SiteManagers";
 import { SiteWorkersPage } from "./pages/admin/SiteWorkers";
 import { AdminSites } from "./pages/admin/Sites";
 import { AdminStorage } from "./pages/admin/Storage";
+import { AdminTrash } from "./pages/admin/Trash";
 import { UserManagement } from "./pages/admin/UserManagement";
 import { SiteManagerBuildingControl } from "./pages/site-manager/BuildingControl";
 import { SiteManagerDashboard } from "./pages/site-manager/Dashboard";
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/storage" element={<AdminStorage />} />
                   <Route path="/product-database" element={<AdminStorage />} />
                   <Route path="/users" element={<UserManagement />} />
+                  <Route path="/trash" element={<AdminTrash />} />
                 </Routes>
               </ProtectedRoute>
             }

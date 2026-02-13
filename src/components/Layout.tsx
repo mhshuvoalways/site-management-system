@@ -7,6 +7,7 @@ import {
   LogOut,
   Menu,
   Package,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export function Layout({ children }: LayoutProps) {
         { to: "/admin/product-database", icon: Package, label: "Product Database" },
         { to: "/admin/transfers", icon: ArrowRightLeft, label: "Transfers" },
         { to: "/admin/users", icon: Users, label: "Users" },
+        { to: "/admin/trash", icon: Trash2, label: "Trash" },
       ];
     }
     if (profile?.role === "site_manager") {
