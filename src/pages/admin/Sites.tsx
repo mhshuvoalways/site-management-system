@@ -73,7 +73,7 @@ export function AdminSites() {
   }, []);
 
   const loadSites = async () => {
-    const { data: sitesData } = await supabase.from("sites").select("*").order("name");
+    const { data: sitesData } = await supabase.from("sites").select("*").is("deleted_at", null).order("name");
     
     const { data: siteItemsData } = await supabase
       .from("site_items")
@@ -143,14 +143,14 @@ export function AdminSites() {
 
     const { error } = await supabase
       .from("sites")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", deleteDialog.siteId);
 
     if (!error) {
       closeDeleteDialog();
       loadSites();
     } else {
-      alert("Failed to delete site: " + error.message);
+      alert("Failed to move site to trash: " + error.message);
       closeDeleteDialog();
     }
   };

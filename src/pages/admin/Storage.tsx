@@ -63,9 +63,9 @@ export function AdminStorage() {
 
   const loadCounts = async () => {
     const [totalResult, equipmentResult, materialResult] = await Promise.all([
-      supabase.from("items").select("*", { count: "exact", head: true }),
-      supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "equipment"),
-      supabase.from("items").select("*", { count: "exact", head: true }).eq("item_type", "material"),
+      supabase.from("items").select("*", { count: "exact", head: true }).is("deleted_at", null),
+      supabase.from("items").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("item_type", "equipment"),
+      supabase.from("items").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("item_type", "material"),
     ]);
 
     setTotalCount(totalResult.count || 0);
@@ -76,7 +76,7 @@ export function AdminStorage() {
   const loadItems = async () => {
     setSearching(true);
 
-    let query = supabase.from("items").select("*").order("name");
+    let query = supabase.from("items").select("*").is("deleted_at", null).order("name");
 
     if (filterType !== "all") {
       query = query.eq("item_type", filterType);
@@ -229,14 +229,14 @@ export function AdminStorage() {
       await deletePhotoFromStorage(itemToDelete.photo_url);
     }
 
-    const { error } = await supabase.from("items").delete().eq("id", deleteDialog.itemId);
+    const { error } = await supabase.from("items").update({ deleted_at: new Date().toISOString() }).eq("id", deleteDialog.itemId);
 
     if (!error) {
       closeDeleteDialog();
       loadItems();
       loadCounts();
     } else {
-      alert("Failed to delete item: " + error.message);
+      alert("Failed to move item to trash: " + error.message);
       closeDeleteDialog();
     }
   };

@@ -1,4 +1,4 @@
-import { Building, Package, Users } from "lucide-react";
+import { Building, Package, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "../../components/Layout";
@@ -141,6 +141,18 @@ export function AdminDashboard() {
                   <Users className="w-5 h-5 text-orange-500" />
                   <span className="font-medium text-gray-900">
                     Users
+                  </span>
+                </div>
+                <span className="text-gray-400">→</span>
+              </Link>
+              <Link
+                to="/admin/trash"
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+              >
+                <div className="flex items-center space-x-3">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                  <span className="font-medium text-gray-900">
+                    Trash
                   </span>
                 </div>
                 <span className="text-gray-400">→</span>

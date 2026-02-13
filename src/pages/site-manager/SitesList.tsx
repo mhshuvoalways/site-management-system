@@ -60,6 +60,7 @@ export function SiteManagerSitesList() {
     const { data: sitesData } = await supabase
       .from("sites")
       .select("*")
+      .is("deleted_at", null)
       .order("name");
 
     const { data: siteItemsData } = await supabase

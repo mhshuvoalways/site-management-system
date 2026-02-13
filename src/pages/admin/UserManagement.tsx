@@ -48,6 +48,7 @@ export function UserManagement() {
     const { data } = await supabase
       .from("profiles")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     setUsers(data || []);
@@ -190,33 +191,13 @@ export function UserManagement() {
     setIsDeleting(true);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        alert("Session expired. Please log in again.");
-        closeDeleteDialog();
-        return;
-      }
+      const { error } = await supabase
+        .from("profiles")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", deleteDialog.userId);
 
-      const apiUrl = `${
-        import.meta.env.VITE_SUPABASE_URL
-      }/functions/v1/delete-user`;
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: deleteDialog.userId,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || result.error) {
-        alert("Failed to delete user: " + (result.error || "Unknown error"));
+      if (error) {
+        alert("Failed to move user to trash: " + error.message);
         closeDeleteDialog();
         return;
       }
@@ -224,7 +205,7 @@ export function UserManagement() {
       closeDeleteDialog();
       loadUsers();
     } catch (error) {
-      alert("Failed to delete user: " + (error as Error).message);
+      alert("Failed to move user to trash: " + (error as Error).message);
       closeDeleteDialog();
     }
   };

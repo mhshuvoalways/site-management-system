@@ -101,6 +101,7 @@ export type Database = {
       items: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           item_type: string
           name: string
@@ -110,6 +111,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           item_type: string
           name: string
@@ -119,6 +121,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           item_type?: string
           name?: string
@@ -131,6 +134,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           email: string
           full_name: string
           id: string
@@ -139,6 +143,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           email: string
           full_name: string
           id: string
@@ -147,6 +152,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -236,6 +242,7 @@ export type Database = {
       sites: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           description: string | null
           id: string
           location: string | null
@@ -244,6 +251,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           location?: string | null
@@ -252,6 +260,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           location?: string | null
