@@ -75,12 +75,12 @@ export function AdminTrash() {
     setLoading(false);
   };
 
-  const totalCount = trashedSites.length + trashedItems.length + trashedUsers.length;
+  const totalCount = trashedSites.length + trashedItems.length + trashedSiteItems.length + trashedUsers.length;
 
   const handleRestore = async (type: Tab, id: string) => {
     setProcessing(true);
-    const table = type === "sites" ? "sites" : type === "items" ? "items" : "profiles";
-    await supabase.from(table).update({ deleted_at: null }).eq("id", id);
+    const table = type === "sites" ? "sites" : type === "items" ? "items" : type === "site_items" ? "site_items" : "profiles";
+    await supabase.from(table).update({ deleted_at: null, ...(type === "site_items" ? { deleted_by: null } : {}) }).eq("id", id);
     await loadTrashed();
     setProcessing(false);
   };
@@ -108,7 +108,7 @@ export function AdminTrash() {
         console.error("Failed to permanently delete user:", e);
       }
     } else {
-      const table = type === "sites" ? "sites" : "items";
+      const table = type === "sites" ? "sites" : type === "items" ? "items" : "site_items";
       await supabase.from(table).delete().eq("id", id);
     }
 
@@ -123,6 +123,7 @@ export function AdminTrash() {
     // Delete sites and items permanently
     const siteIds = trashedSites.map((s) => s.id);
     const itemIds = trashedItems.map((i) => i.id);
+    const siteItemIds = trashedSiteItems.map((si) => si.id);
     const userIds = trashedUsers.map((u) => u.id);
 
     if (siteIds.length > 0) {
@@ -131,8 +132,9 @@ export function AdminTrash() {
     if (itemIds.length > 0) {
       await supabase.from("items").delete().in("id", itemIds);
     }
-
-    
+    if (siteItemIds.length > 0) {
+      await supabase.from("site_items").delete().in("id", siteItemIds);
+    }
 
     // Delete users via edge function
     if (userIds.length > 0) {
@@ -174,6 +176,7 @@ export function AdminTrash() {
   const tabs: { key: Tab; label: string; icon: typeof Building; count: number }[] = [
     { key: "sites", label: "Sites", icon: Building, count: trashedSites.length },
     { key: "items", label: "Items", icon: Package, count: trashedItems.length },
+    { key: "site_items", label: "Site Items", icon: Package, count: trashedSiteItems.length },
     { key: "users", label: "Users", icon: Users, count: trashedUsers.length },
   ];
 
@@ -282,6 +285,34 @@ export function AdminTrash() {
                 onRestore={() => handleRestore("items", item.id)}
                 onDelete={() =>
                   setDeleteDialog({ isOpen: true, type: "items", id: item.id, name: item.name })
+                }
+                disabled={processing}
+              />
+            )}
+          />
+        )}
+
+        {activeTab === "site_items" && (
+          <TrashList
+            items={trashedSiteItems}
+            emptyMessage="No site items in trash"
+            emptyIcon={Package}
+            renderItem={(siteItem) => (
+              <TrashCard
+                key={siteItem.id}
+                icon={<Package className="w-5 h-5 text-white" />}
+                iconBg={siteItem.item?.item_type === "equipment" ? "from-blue-500 to-blue-600" : "from-green-500 to-green-600"}
+                title={capitalizeWords(siteItem.item?.name) || "Unknown Item"}
+                subtitle={`Site: ${capitalizeWords(siteItem.site?.name) || "Unknown"} · Qty: ${siteItem.quantity ?? 0} · By: ${capitalizeWords(siteItem.deleted_by_profile?.full_name) || "Unknown"}`}
+                deletedAt={formatDate(siteItem.deleted_at)}
+                onRestore={() => handleRestore("site_items", siteItem.id)}
+                onDelete={() =>
+                  setDeleteDialog({
+                    isOpen: true,
+                    type: "site_items",
+                    id: siteItem.id,
+                    name: siteItem.item?.name || "Site Item",
+                  })
                 }
                 disabled={processing}
               />

@@ -194,6 +194,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "site_items_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "site_items_item_id_fkey"
             columns: ["item_id"]
             isOneToOne: false
