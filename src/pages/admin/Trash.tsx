@@ -5,7 +5,7 @@ import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { capitalizeWords } from "../../utils/capitalize";
 
-type Tab = "sites" | "items" | "users";
+type Tab = "sites" | "items" | "users" | "site_items";
 
 interface TrashedSite {
   id: string;
@@ -30,10 +30,21 @@ interface TrashedUser {
   deleted_at: string;
 }
 
+interface TrashedSiteItem {
+  id: string;
+  quantity: number | null;
+  deleted_at: string;
+  deleted_by: string | null;
+  item: { name: string; item_type: string } | null;
+  site: { name: string } | null;
+  deleted_by_profile: { full_name: string } | null;
+}
+
 export function AdminTrash() {
   const [activeTab, setActiveTab] = useState<Tab>("sites");
   const [trashedSites, setTrashedSites] = useState<TrashedSite[]>([]);
   const [trashedItems, setTrashedItems] = useState<TrashedItem[]>([]);
+  const [trashedSiteItems, setTrashedSiteItems] = useState<TrashedSiteItem[]>([]);
   const [trashedUsers, setTrashedUsers] = useState<TrashedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -50,14 +61,16 @@ export function AdminTrash() {
   }, []);
 
   const loadTrashed = async () => {
-    const [sitesRes, itemsRes, usersRes] = await Promise.all([
+    const [sitesRes, itemsRes, siteItemsRes, usersRes] = await Promise.all([
       supabase.from("sites").select("id, name, location, deleted_at").not("deleted_at", "is", null),
       supabase.from("items").select("id, name, item_type, quantity, deleted_at").not("deleted_at", "is", null),
+      supabase.from("site_items").select("id, quantity, deleted_at, deleted_by, item:items(name, item_type), site:sites(name), deleted_by_profile:profiles!site_items_deleted_by_fkey(full_name)").not("deleted_at", "is", null),
       supabase.from("profiles").select("id, full_name, email, role, deleted_at").not("deleted_at", "is", null),
     ]);
 
     setTrashedSites((sitesRes.data as TrashedSite[]) || []);
     setTrashedItems((itemsRes.data as TrashedItem[]) || []);
+    setTrashedSiteItems((siteItemsRes.data as any[]) || []);
     setTrashedUsers((usersRes.data as TrashedUser[]) || []);
     setLoading(false);
   };
