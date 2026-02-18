@@ -1,7 +1,6 @@
 import {
   ArrowRightLeft,
   Building,
-  Building2,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -12,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
+import logoImg from "@/assets/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -67,9 +67,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <Link to={"/"}>
-                <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-2 rounded-lg">
-                  <Building2 className="w-6 h-6 text-white" />
-                </div>
+                <img src={logoImg} alt="Logo" className="w-10 h-10 rounded-lg" />
               </Link>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
