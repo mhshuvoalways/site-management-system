@@ -45,7 +45,7 @@ export function AdminSiteDetail() {
 
     const [siteData, siteItemsData, itemsData, sitesData, allSiteItemsData] = await Promise.all([
       supabase.from("sites").select("*").eq("id", id).single(),
-      supabase.from("site_items").select("*, item:items(*)").eq("site_id", id),
+      supabase.from("site_items").select("*, item:items(*)").eq("site_id", id).is("deleted_at", null),
       supabase.from("items").select("*").is("deleted_at", null).order("name"),
       supabase.from("sites").select("*").neq("id", id).order("name"),
       supabase.from("site_items").select("*"),
@@ -203,9 +203,9 @@ export function AdminSiteDetail() {
   };
 
   const handleDelete = async () => {
-    if (!currentSiteItem) return;
+    if (!currentSiteItem || !profile) return;
 
-    await supabase.from("site_items").delete().eq("id", currentSiteItem.id);
+    await supabase.from("site_items").update({ deleted_at: new Date().toISOString(), deleted_by: profile.id }).eq("id", currentSiteItem.id);
 
     setShowDeleteModal(false);
     setCurrentSiteItem(null);
