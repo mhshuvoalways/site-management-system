@@ -273,8 +273,7 @@ export function AdminSiteDetail() {
   };
 
   const filteredItems = allItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()) &&
-    getAvailableStock(item.id) > 0
+    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase())
   );
 
   const selectedItemData = allItems.find((item) => item.id === selectedItem);
@@ -584,15 +583,17 @@ export function AdminSiteDetail() {
                           <button
                             key={item.id}
                             type="button"
+                            disabled={itemAvailableStock === 0}
                             onClick={() => {
+                              if (itemAvailableStock === 0) return;
                               setSelectedItem(item.id);
                               setItemSearchTerm("");
                               setShowItemDropdown(false);
                               setQuantity(Math.min(1, itemAvailableStock));
                             }}
-                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center space-x-3 ${
-                              selectedItem === item.id ? "bg-blue-50" : ""
-                            }`}
+                            className={`w-full text-left px-4 py-3 transition flex items-center space-x-3 ${
+                              itemAvailableStock === 0 ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50"
+                            } ${selectedItem === item.id ? "bg-blue-50" : ""}`}
                           >
                             {item.photo_url ? (
                               <img
@@ -611,6 +612,7 @@ export function AdminSiteDetail() {
                               </p>
                               <p className="text-xs text-gray-500">
                                 {capitalizeWords(item.item_type)} • Available: {itemAvailableStock}
+                                {itemAvailableStock === 0 && <span className="text-red-500 ml-1">(Out of stock)</span>}
                               </p>
                             </div>
                           </button>
@@ -657,7 +659,8 @@ export function AdminSiteDetail() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
+                  disabled={!selectedItem || availableStock === 0}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Add Item
                 </button>
