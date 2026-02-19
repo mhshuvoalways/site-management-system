@@ -263,7 +263,8 @@ export function AdminSiteDetail() {
     );
 
   const filteredItems = allItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase())
+    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()) &&
+    getAvailableStock(item.id) > 0
   );
 
   const selectedItemData = allItems.find((item) => item.id === selectedItem);
