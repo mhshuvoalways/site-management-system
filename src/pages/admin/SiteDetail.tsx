@@ -262,13 +262,6 @@ export function AdminSiteDetail() {
       })
     );
 
-  const filteredItems = allItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()) &&
-    getAvailableStock(item.id) > 0
-  );
-
-  const selectedItemData = allItems.find((item) => item.id === selectedItem);
-
   // Calculate available stock for selected item (total quantity - already allocated to sites)
   const getAvailableStock = (itemId: string) => {
     const item = allItems.find((i) => i.id === itemId);
@@ -279,6 +272,12 @@ export function AdminSiteDetail() {
     return Math.max(0, item.quantity - allocatedQuantity);
   };
 
+  const filteredItems = allItems.filter((item) =>
+    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()) &&
+    getAvailableStock(item.id) > 0
+  );
+
+  const selectedItemData = allItems.find((item) => item.id === selectedItem);
   const availableStock = selectedItem ? getAvailableStock(selectedItem) : 0;
 
   return (
