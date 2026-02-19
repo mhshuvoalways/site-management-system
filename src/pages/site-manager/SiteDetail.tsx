@@ -559,7 +559,7 @@ export function SiteManagerSiteDetail() {
                               setQuantity(Math.min(1, itemAvailableStock));
                             }}
                             className={`w-full text-left px-4 py-3 transition flex items-center space-x-3 ${
-                              itemAvailableStock === 0 ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50"
+                              itemAvailableStock === 0 ? "cursor-not-allowed" : "hover:bg-gray-50"
                             } ${selectedItem === item.id ? "bg-blue-50" : ""}`}
                           >
                             {item.photo_url ? (
