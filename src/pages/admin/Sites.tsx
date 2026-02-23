@@ -79,8 +79,8 @@ export function AdminSites() {
     
     const { data: siteItemsData } = await supabase
       .from("site_items")
-      .select("*, item:items(*)");
-
+      .select("*, item:items(*)")
+      .is("deleted_at", null);
     const sitesWithItems: SiteWithItems[] = (sitesData || []).map((site) => ({
       ...site,
       items: (siteItemsData || []).filter((si) => si.site_id === site.id) as (SiteItem & { item: Item })[],
