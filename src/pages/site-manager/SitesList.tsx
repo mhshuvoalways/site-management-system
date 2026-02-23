@@ -65,7 +65,8 @@ export function SiteManagerSitesList() {
 
     const { data: siteItemsData } = await supabase
       .from("site_items")
-      .select("*, item:items(*)");
+      .select("*, item:items(*)")
+      .is("deleted_at", null);
 
     const sitesWithItems: SiteWithItems[] = (sitesData || []).map((site) => ({
       ...site,
