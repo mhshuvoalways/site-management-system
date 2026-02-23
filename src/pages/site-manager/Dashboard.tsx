@@ -23,7 +23,7 @@ export function SiteManagerDashboard() {
 
     const [sitesResult, siteItemsResult, workersResult] = await Promise.all([
       supabase.from("sites").select("id", { count: "exact", head: true }),
-      supabase.from("site_items").select("id", { count: "exact", head: true }),
+      supabase.from("site_items").select("id", { count: "exact", head: true }).is("deleted_at", null),
       supabase.from("workers").select("id", { count: "exact", head: true }),
     ]);
 
