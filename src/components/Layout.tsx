@@ -65,13 +65,10 @@ export function Layout({ children }: LayoutProps) {
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center">
               <Link to={"/"}>
                 <img src={logoImg} alt="Logo" className="h-10 rounded-lg" />
               </Link>
-              <p className="text-xs text-gray-500 capitalize">
-                {profile?.role.replace("_", " ")}
-              </p>
             </div>
 
             <div className="hidden lg:flex items-center space-x-0.5">
