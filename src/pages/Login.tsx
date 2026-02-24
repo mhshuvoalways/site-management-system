@@ -1,7 +1,8 @@
-import { Building2, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import logoImg from "@/assets/logo.png";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -55,9 +56,7 @@ export function Login() {
     <div className="min-h-screen bg-gradient-to-br from-[#0db2ad] to-[#567fca] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-4 rounded-full mb-4">
-            <Building2 className="w-12 h-12 text-white" />
-          </div>
+          <img src={logoImg} alt="Logo" className="w-16 h-16 rounded-xl mb-2" />
           <h1 className="text-3xl font-bold text-gray-900">Site Management</h1>
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
