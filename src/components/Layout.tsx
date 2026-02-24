@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
-import logoImg from "@/assets/logo.png";
+import logoImg from "@/assets/logo.webp";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -67,16 +67,11 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <Link to={"/"}>
-                <img src={logoImg} alt="Logo" className="w-10 h-10 rounded-lg" />
+                <img src={logoImg} alt="Logo" className="h-10 rounded-lg" />
               </Link>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Site Management
-                </h1>
-                <p className="text-xs text-gray-500 capitalize">
-                  {profile?.role.replace("_", " ")}
-                </p>
-              </div>
+              <p className="text-xs text-gray-500 capitalize">
+                {profile?.role.replace("_", " ")}
+              </p>
             </div>
 
             <div className="hidden lg:flex items-center space-x-0.5">

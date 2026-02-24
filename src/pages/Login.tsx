@@ -2,7 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import logoImg from "@/assets/logo.png";
+import logoImg from "@/assets/logo.webp";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -56,8 +56,7 @@ export function Login() {
     <div className="min-h-screen bg-gradient-to-br from-[#0db2ad] to-[#567fca] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
-          <img src={logoImg} alt="Logo" className="w-16 h-16 rounded-xl mb-2" />
-          <h1 className="text-3xl font-bold text-gray-900">Site Management</h1>
+          <img src={logoImg} alt="Logo" className="h-20 mb-2" />
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
