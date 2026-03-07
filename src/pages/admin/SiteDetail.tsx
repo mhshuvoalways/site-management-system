@@ -66,6 +66,8 @@ export function AdminSiteDetail() {
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !selectedItem) return;
+    if (quantity <= 0) { alert("Quantity must be greater than 0"); return; }
+    if (quantity > availableStock) { alert(`Cannot exceed available stock of ${availableStock}`); return; }
 
     try {
       const { data: existing, error: selectError } = await supabase
@@ -119,6 +121,9 @@ export function AdminSiteDetail() {
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !currentSiteItem || !targetSiteId || !profile) return;
+    const maxQty = currentSiteItem.quantity ?? 0;
+    if (quantity <= 0) { alert("Quantity must be greater than 0"); return; }
+    if (quantity > maxQty) { alert(`Cannot exceed available quantity of ${maxQty}`); return; }
 
     await supabase.from("transfers").insert({
       item_id: currentSiteItem.item_id,
@@ -168,6 +173,9 @@ export function AdminSiteDetail() {
   const handleReduce = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentSiteItem) return;
+    const maxQty = currentSiteItem.quantity ?? 0;
+    if (quantity <= 0) { alert("Quantity must be greater than 0"); return; }
+    if (quantity > maxQty) { alert(`Cannot exceed current quantity of ${maxQty}`); return; }
 
     const newQuantity = (currentSiteItem.quantity ?? 0) - quantity;
     if (newQuantity <= 0) {
@@ -627,13 +635,13 @@ export function AdminSiteDetail() {
                   Quantity {selectedItem && <span className="text-gray-500">(Available: {availableStock})</span>}
                 </label>
                 <input
-                  type="number"
-                  min={0}
-                  max={availableStock}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={quantity}
                   onChange={(e) => {
-                    const numValue = parseInt(e.target.value, 10) || 0;
-                    setQuantity(Math.min(numValue, availableStock));
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setQuantity(val === '' ? 0 : parseInt(val, 10));
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
@@ -641,6 +649,9 @@ export function AdminSiteDetail() {
                 />
                 {selectedItem && availableStock === 0 && (
                   <p className="text-sm text-red-600 mt-1">No stock available for this item</p>
+                )}
+                {selectedItem && quantity > availableStock && availableStock > 0 && (
+                  <p className="text-sm text-red-600 mt-1">Cannot exceed available stock of {availableStock}</p>
                 )}
               </div>
               <div className="flex space-x-3 pt-4">
@@ -709,18 +720,20 @@ export function AdminSiteDetail() {
                   Quantity to Transfer
                 </label>
                 <input
-                  type="number"
-                  min={0}
-                  max={currentSiteItem.quantity ?? 0}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={quantity}
                   onChange={(e) => {
-                    const numValue = parseInt(e.target.value, 10) || 0;
-                    const maxQty = currentSiteItem.quantity ?? 0;
-                    setQuantity(Math.min(numValue, maxQty));
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setQuantity(val === '' ? 0 : parseInt(val, 10));
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
+                {quantity > (currentSiteItem.quantity ?? 0) && (
+                  <p className="text-sm text-red-600 mt-1">Cannot exceed available quantity of {currentSiteItem.quantity}</p>
+                )}
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
@@ -766,18 +779,20 @@ export function AdminSiteDetail() {
                   Quantity to Reduce
                 </label>
                 <input
-                  type="number"
-                  min={0}
-                  max={currentSiteItem.quantity ?? 0}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={quantity}
                   onChange={(e) => {
-                    const numValue = parseInt(e.target.value, 10) || 0;
-                    const maxQty = currentSiteItem.quantity ?? 0;
-                    setQuantity(Math.min(numValue, maxQty));
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setQuantity(val === '' ? 0 : parseInt(val, 10));
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
                   required
                 />
+                {quantity > (currentSiteItem.quantity ?? 0) && (
+                  <p className="text-sm text-red-600 mt-1">Cannot exceed current quantity of {currentSiteItem.quantity}</p>
+                )}
                 <p className="text-sm text-gray-600 mt-2">
                   Remaining: {(currentSiteItem.quantity ?? 0) - quantity}
                   {(currentSiteItem.quantity ?? 0) - quantity === 0 && (
