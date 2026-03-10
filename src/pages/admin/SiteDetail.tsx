@@ -11,6 +11,7 @@ import {
   Trash2,
   UserCog,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -702,9 +703,18 @@ export function AdminSiteDetail() {
             className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Add {addItemType === "equipment" ? "Equipment" : "Material"} to Site
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Add {addItemType === "equipment" ? "Equipment" : "Material"} to Site
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <form onSubmit={handleAddItem} className="space-y-4">
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
