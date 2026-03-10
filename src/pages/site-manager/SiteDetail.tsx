@@ -1,16 +1,19 @@
 import {
   ArrowLeft,
   ArrowRight,
+  CheckSquare,
   FileText,
   Minus,
   Package,
   Plus,
   Search,
+  Square,
   Trash2,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
@@ -27,6 +30,7 @@ export function SiteManagerSiteDetail() {
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addItemType, setAddItemType] = useState<"equipment" | "material">("equipment");
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showReduceModal, setShowReduceModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,6 +42,11 @@ export function SiteManagerSiteDetail() {
   const [materialsSearchTerm, setMaterialsSearchTerm] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [targetSiteId, setTargetSiteId] = useState("");
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<Set<string>>(new Set());
+  const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -65,8 +74,9 @@ export function SiteManagerSiteDetail() {
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !selectedItem) return;
-    if (quantity <= 0) { alert("Quantity must be greater than 0"); return; }
-    if (quantity > availableStock) { alert(`Cannot exceed available stock of ${availableStock}`); return; }
+
+    const finalQuantity = addItemType === "material" ? 1 : quantity;
+    if (addItemType === "equipment" && finalQuantity <= 0) { alert("Quantity must be greater than 0"); return; }
 
     try {
       const { data: existing, error: selectError } = await supabase
@@ -85,7 +95,7 @@ export function SiteManagerSiteDetail() {
       if (existing) {
         const { error: updateError } = await supabase
           .from("site_items")
-          .update({ quantity: (existing.quantity ?? 0) + quantity })
+          .update({ quantity: (existing.quantity ?? 0) + finalQuantity, deleted_at: null, deleted_by: null })
           .eq("id", existing.id);
 
         if (updateError) {
@@ -96,7 +106,7 @@ export function SiteManagerSiteDetail() {
       } else {
         const { error: insertError } = await supabase
           .from("site_items")
-          .insert({ site_id: id, item_id: selectedItem, quantity });
+          .insert({ site_id: id, item_id: selectedItem, quantity: finalQuantity });
 
         if (insertError) {
           console.error("Error inserting item:", insertError);
@@ -117,21 +127,12 @@ export function SiteManagerSiteDetail() {
     }
   };
 
-  // Calculate available stock for selected item (total quantity - already allocated to sites)
-  const getAvailableStock = (itemId: string) => {
-    const item = allItems.find((i) => i.id === itemId);
-    if (!item) return 0;
-    const allocatedQuantity = allSiteItems
-      .filter((si) => si.item_id === itemId)
-      .reduce((sum, si) => sum + (si.quantity ?? 0), 0);
-    return Math.max(0, item.quantity - allocatedQuantity);
-  };
-
-  const availableStock = selectedItem ? getAvailableStock(selectedItem) : 0;
-  const selectedItemData = allItems.find((item) => item.id === selectedItem);
   const filteredItems = allItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase())
+    item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()) &&
+    item.item_type === addItemType
   );
+
+  const selectedItemData = allItems.find((item) => item.id === selectedItem);
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +224,91 @@ export function SiteManagerSiteDetail() {
     loadData();
   };
 
+  // Multi-select helpers
+  const toggleEquipmentSelection = (id: string) => {
+    setSelectedEquipmentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleMaterialSelection = (id: string) => {
+    setSelectedMaterialIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const allSelectedIds = [...selectedEquipmentIds, ...selectedMaterialIds];
+  const totalSelected = allSelectedIds.length;
+
+  const handleBulkDelete = async () => {
+    if (!profile) return;
+    setBulkProcessing(true);
+    for (const itemId of allSelectedIds) {
+      await supabase.from("site_items").update({ deleted_at: new Date().toISOString(), deleted_by: profile.id }).eq("id", itemId);
+    }
+    setSelectedEquipmentIds(new Set());
+    setSelectedMaterialIds(new Set());
+    setShowBulkDeleteDialog(false);
+    setBulkProcessing(false);
+    loadData();
+  };
+
+  const handleBulkTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !targetSiteId || !profile) return;
+    setBulkProcessing(true);
+
+    const selectedSiteItems = siteItems.filter(si => allSelectedIds.includes(si.id));
+
+    for (const si of selectedSiteItems) {
+      const transferQty = si.quantity ?? 0;
+      if (transferQty <= 0) continue;
+
+      await supabase.from("transfers").insert({
+        item_id: si.item_id,
+        from_site_id: id,
+        to_site_id: targetSiteId,
+        quantity: transferQty,
+        transferred_by: profile.id,
+      });
+
+      await supabase.from("site_items").delete().eq("id", si.id);
+
+      const { data: targetItem } = await supabase
+        .from("site_items")
+        .select("*")
+        .eq("site_id", targetSiteId)
+        .eq("item_id", si.item_id)
+        .maybeSingle();
+
+      if (targetItem) {
+        await supabase.from("site_items").update({ quantity: (targetItem.quantity ?? 0) + transferQty }).eq("id", targetItem.id);
+      } else {
+        await supabase.from("site_items").insert({ site_id: targetSiteId, item_id: si.item_id, quantity: transferQty });
+      }
+    }
+
+    setSelectedEquipmentIds(new Set());
+    setSelectedMaterialIds(new Set());
+    setShowBulkTransferModal(false);
+    setTargetSiteId("");
+    setBulkProcessing(false);
+    loadData();
+  };
+
+  const openAddModal = (type: "equipment" | "material") => {
+    setAddItemType(type);
+    setShowAddModal(true);
+    setItemSearchTerm("");
+    setSelectedItem("");
+    setShowItemDropdown(false);
+    setQuantity(1);
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -256,6 +342,22 @@ export function SiteManagerSiteDetail() {
         si.item?.name.toLowerCase().includes(materialsSearchTerm.toLowerCase()))
   );
 
+  const selectAllEquipment = () => {
+    if (selectedEquipmentIds.size === equipment.length) {
+      setSelectedEquipmentIds(new Set());
+    } else {
+      setSelectedEquipmentIds(new Set(equipment.map(e => e.id)));
+    }
+  };
+
+  const selectAllMaterials = () => {
+    if (selectedMaterialIds.size === materials.length) {
+      setSelectedMaterialIds(new Set());
+    } else {
+      setSelectedMaterialIds(new Set(materials.map(m => m.id)));
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -270,19 +372,22 @@ export function SiteManagerSiteDetail() {
             <h1 className="text-3xl font-bold text-gray-900">{capitalizeWords(site.name)}</h1>
             <p className="text-gray-600 mt-1">{capitalizeWords(site.location)}</p>
           </div>
-          <button
-            onClick={() => {
-              setShowAddModal(true);
-              setItemSearchTerm("");
-              setSelectedItem("");
-              setShowItemDropdown(false);
-              setQuantity(1);
-            }}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Item</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => openAddModal("equipment")}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add Equipment</span>
+            </button>
+            <button
+              onClick={() => openAddModal("material")}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-lg transition"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add Material</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -330,9 +435,15 @@ export function SiteManagerSiteDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Equipment Panel */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">Equipment</h2>
+              {equipment.length > 0 && (
+                <button onClick={selectAllEquipment} className="text-white/80 hover:text-white text-sm font-medium">
+                  {selectedEquipmentIds.size === equipment.length ? "Deselect All" : "Select All"}
+                </button>
+              )}
             </div>
             <div className="px-6 pt-4">
               <div className="relative">
@@ -357,9 +468,19 @@ export function SiteManagerSiteDetail() {
                   {equipment.map((siteItem) => (
                     <div
                       key={siteItem.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                      className={`flex items-center justify-between p-4 rounded-lg transition ${selectedEquipmentIds.has(siteItem.id) ? "bg-blue-50 border border-blue-200" : "bg-gray-50"}`}
                     >
                       <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => toggleEquipmentSelection(siteItem.id)}
+                          className="text-gray-400 hover:text-blue-600 transition"
+                        >
+                          {selectedEquipmentIds.has(siteItem.id) ? (
+                            <CheckSquare className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
                         {siteItem.item?.photo_url ? (
                           <img
                             src={siteItem.item.photo_url}
@@ -418,9 +539,15 @@ export function SiteManagerSiteDetail() {
             </div>
           </div>
 
+          {/* Materials Panel */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">Materials</h2>
+              {materials.length > 0 && (
+                <button onClick={selectAllMaterials} className="text-white/80 hover:text-white text-sm font-medium">
+                  {selectedMaterialIds.size === materials.length ? "Deselect All" : "Select All"}
+                </button>
+              )}
             </div>
             <div className="px-6 pt-4">
               <div className="relative">
@@ -445,9 +572,19 @@ export function SiteManagerSiteDetail() {
                   {materials.map((siteItem) => (
                     <div
                       key={siteItem.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                      className={`flex items-center justify-between p-4 rounded-lg transition ${selectedMaterialIds.has(siteItem.id) ? "bg-green-50 border border-green-200" : "bg-gray-50"}`}
                     >
                       <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => toggleMaterialSelection(siteItem.id)}
+                          className="text-gray-400 hover:text-green-600 transition"
+                        >
+                          {selectedMaterialIds.has(siteItem.id) ? (
+                            <CheckSquare className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
                         {siteItem.item?.photo_url ? (
                           <img
                             src={siteItem.item.photo_url}
@@ -459,14 +596,9 @@ export function SiteManagerSiteDetail() {
                             <Package className="w-5 h-5" />
                           </div>
                         )}
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {capitalizeWords(siteItem.item?.name)}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Qty: {siteItem.quantity}
-                          </p>
-                        </div>
+                        <p className="font-medium text-gray-900">
+                          {capitalizeWords(siteItem.item?.name)}
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
@@ -479,17 +611,6 @@ export function SiteManagerSiteDetail() {
                           title="Transfer"
                         >
                           <ArrowRight className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCurrentSiteItem(siteItem);
-                            setQuantity(1);
-                            setShowReduceModal(true);
-                          }}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                          title="Reduce"
-                        >
-                          <Minus className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(siteItem)}
@@ -508,6 +629,34 @@ export function SiteManagerSiteDetail() {
         </div>
       </div>
 
+      {/* Floating bulk action bar */}
+      {totalSelected > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-40">
+          <span className="text-sm font-medium">{totalSelected} item{totalSelected !== 1 ? "s" : ""} selected</span>
+          <button
+            onClick={() => { setTargetSiteId(""); setShowBulkTransferModal(true); }}
+            className="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#0db2ad] rounded-lg hover:bg-[#0a9e99] transition text-sm font-medium"
+          >
+            <ArrowRight className="w-4 h-4" />
+            <span>Transfer</span>
+          </button>
+          <button
+            onClick={() => setShowBulkDeleteDialog(true)}
+            className="inline-flex items-center space-x-1 px-3 py-1.5 bg-red-600 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+          <button
+            onClick={() => { setSelectedEquipmentIds(new Set()); setSelectedMaterialIds(new Set()); }}
+            className="text-gray-400 hover:text-white transition text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Add Item Modal */}
       {showAddModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
@@ -518,21 +667,21 @@ export function SiteManagerSiteDetail() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Add Item to Site
+              Add {addItemType === "equipment" ? "Equipment" : "Material"} to Site
             </h2>
             <form onSubmit={handleAddItem} className="space-y-4">
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Item
+                  Select {addItemType === "equipment" ? "Equipment" : "Material"}
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                   <input
                     type="text"
-                    placeholder="Search and select an item..."
+                    placeholder={`Search ${addItemType}...`}
                     value={
                       selectedItemData
-                        ? `${capitalizeWords(selectedItemData.name)} (${capitalizeWords(selectedItemData.item_type)})`
+                        ? capitalizeWords(selectedItemData.name)
                         : itemSearchTerm
                     }
                     onChange={(e) => {
@@ -549,78 +698,65 @@ export function SiteManagerSiteDetail() {
                   <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {filteredItems.length === 0 ? (
                       <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                        No items found
+                        No {addItemType} found
                       </div>
                     ) : (
-                      filteredItems.map((item) => {
-                        const itemAvailableStock = getAvailableStock(item.id);
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            disabled={itemAvailableStock === 0}
-                            onClick={() => {
-                              if (itemAvailableStock === 0) return;
-                              setSelectedItem(item.id);
-                              setItemSearchTerm("");
-                              setShowItemDropdown(false);
-                              setQuantity(Math.min(1, itemAvailableStock));
-                            }}
-                            className={`w-full text-left px-4 py-3 transition flex items-center space-x-3 ${
-                              itemAvailableStock === 0 ? "cursor-not-allowed" : "hover:bg-gray-50"
-                            } ${selectedItem === item.id ? "bg-blue-50" : ""}`}
-                          >
-                            {item.photo_url ? (
-                              <img
-                                src={item.photo_url}
-                                alt={item.name}
-                                className="w-10 h-10 object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="bg-gray-100 p-2 rounded-lg">
-                                <Package className="w-6 h-6 text-gray-400" />
-                              </div>
-                            )}
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900">
-                                {capitalizeWords(item.name)}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {capitalizeWords(item.item_type)} • Available: {itemAvailableStock}
-                                {itemAvailableStock === 0 && <span className="text-red-500 ml-1">(Out of stock)</span>}
-                              </p>
+                      filteredItems.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedItem(item.id);
+                            setItemSearchTerm("");
+                            setShowItemDropdown(false);
+                            setQuantity(1);
+                          }}
+                          className={`w-full text-left px-4 py-3 transition flex items-center space-x-3 hover:bg-gray-50 ${selectedItem === item.id ? "bg-blue-50" : ""}`}
+                        >
+                          {item.photo_url ? (
+                            <img
+                              src={item.photo_url}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="bg-gray-100 p-2 rounded-lg">
+                              <Package className="w-6 h-6 text-gray-400" />
                             </div>
-                          </button>
-                        );
-                      })
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              {capitalizeWords(item.name)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {capitalizeWords(item.item_type)}
+                            </p>
+                          </div>
+                        </button>
+                      ))
                     )}
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity {selectedItem && <span className="text-gray-500">(Available: {availableStock})</span>}
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, '');
-                    setQuantity(val === '' ? 0 : parseInt(val, 10));
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
-                  disabled={availableStock === 0 && selectedItem !== ""}
-                />
-                {selectedItem && availableStock === 0 && (
-                  <p className="text-sm text-red-600 mt-1">No stock available for this item</p>
-                )}
-                {selectedItem && quantity > availableStock && availableStock > 0 && (
-                  <p className="text-sm text-red-600 mt-1">Cannot exceed available stock of {availableStock}</p>
-                )}
-              </div>
+              {addItemType === "equipment" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setQuantity(val === '' ? 0 : parseInt(val, 10));
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required
+                  />
+                </div>
+              )}
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
@@ -637,10 +773,10 @@ export function SiteManagerSiteDetail() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedItem || availableStock === 0}
+                  disabled={!selectedItem}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add Item
+                  Add {addItemType === "equipment" ? "Equipment" : "Material"}
                 </button>
               </div>
             </form>
@@ -648,6 +784,7 @@ export function SiteManagerSiteDetail() {
         </div>
       )}
 
+      {/* Transfer Modal */}
       {showTransferModal && currentSiteItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
@@ -660,9 +797,11 @@ export function SiteManagerSiteDetail() {
                 <p className="text-lg font-bold text-gray-900">
                   {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Available: {currentSiteItem.quantity}
-                </p>
+                {currentSiteItem.item?.item_type === "equipment" && (
+                  <p className="text-sm text-gray-600">
+                    Available: {currentSiteItem.quantity}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -682,26 +821,28 @@ export function SiteManagerSiteDetail() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity to Transfer
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, '');
-                    setQuantity(val === '' ? 0 : parseInt(val, 10));
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
-                />
-                {quantity > (currentSiteItem.quantity ?? 0) && (
-                  <p className="text-sm text-red-600 mt-1">Cannot exceed available quantity of {currentSiteItem.quantity}</p>
-                )}
-              </div>
+              {currentSiteItem.item?.item_type === "equipment" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity to Transfer
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setQuantity(val === '' ? 0 : parseInt(val, 10));
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required
+                  />
+                  {quantity > (currentSiteItem.quantity ?? 0) && (
+                    <p className="text-sm text-red-600 mt-1">Cannot exceed available quantity of {currentSiteItem.quantity}</p>
+                  )}
+                </div>
+              )}
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
@@ -725,6 +866,7 @@ export function SiteManagerSiteDetail() {
         </div>
       )}
 
+      {/* Reduce Modal (equipment only) */}
       {showReduceModal && currentSiteItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
@@ -793,6 +935,7 @@ export function SiteManagerSiteDetail() {
         </div>
       )}
 
+      {/* Single Delete Modal */}
       {showDeleteModal && currentSiteItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
@@ -807,13 +950,14 @@ export function SiteManagerSiteDetail() {
                 <p className="text-lg font-bold text-gray-900">
                   {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Quantity: {currentSiteItem.quantity}
-                </p>
+                {currentSiteItem.item?.item_type === "equipment" && (
+                  <p className="text-sm text-gray-600">
+                    Quantity: {currentSiteItem.quantity}
+                  </p>
+                )}
               </div>
               <p className="text-sm text-gray-600">
-                This action cannot be undone. The item will be permanently removed
-                from this site.
+                This item will be moved to trash.
               </p>
               <div className="flex space-x-3 pt-4">
                 <button
@@ -834,6 +978,75 @@ export function SiteManagerSiteDetail() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Dialog */}
+      <ConfirmDialog
+        isOpen={showBulkDeleteDialog}
+        title="Delete Selected Items"
+        message={`Are you sure you want to delete ${totalSelected} selected item${totalSelected !== 1 ? "s" : ""}? They will be moved to trash.`}
+        confirmLabel="Delete All"
+        onConfirm={handleBulkDelete}
+        onCancel={() => setShowBulkDeleteDialog(false)}
+        isProcessing={bulkProcessing}
+      />
+
+      {/* Bulk Transfer Modal */}
+      {showBulkTransferModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Transfer {totalSelected} Item{totalSelected !== 1 ? "s" : ""}
+            </h2>
+            <form onSubmit={handleBulkTransfer} className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">Items to transfer:</p>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {siteItems.filter(si => allSelectedIds.includes(si.id)).map(si => (
+                    <p key={si.id} className="text-sm font-medium text-gray-900">
+                      {capitalizeWords(si.item?.name)} {si.item?.item_type === "equipment" ? `(Qty: ${si.quantity})` : ""}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Destination Site
+                </label>
+                <select
+                  value={targetSiteId}
+                  onChange={(e) => setTargetSiteId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                  required
+                >
+                  <option value="">Choose a site...</option>
+                  {sites.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {capitalizeWords(s.name)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowBulkTransferModal(false)}
+                  disabled={bulkProcessing}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={bulkProcessing}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                >
+                  {bulkProcessing ? "Transferring..." : "Transfer All"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
