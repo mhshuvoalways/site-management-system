@@ -1,4 +1,5 @@
 import {
+  CheckSquare,
   ChevronLeft,
   ChevronRight,
   Edit2,
@@ -7,6 +8,7 @@ import {
   Package,
   Plus,
   Search,
+  Square,
   Trash2,
   X,
 } from "lucide-react";
@@ -57,6 +59,9 @@ export function AdminStorage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditSaving, setIsEditSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadItems();
@@ -144,7 +149,12 @@ export function AdminStorage() {
       photoUrl = await uploadPhoto(photoFile);
     }
 
-    const { error } = await supabase.from("items").insert({ ...newItem, photo_url: photoUrl });
+    // Materials don't have quantity
+    const insertData = newItem.item_type === "material"
+      ? { name: newItem.name, item_type: newItem.item_type, quantity: 0, photo_url: photoUrl }
+      : { ...newItem, photo_url: photoUrl };
+
+    const { error } = await supabase.from("items").insert(insertData);
 
     if (!error) {
       setNewItem({ name: "", item_type: "equipment", quantity: 0 });
@@ -159,7 +169,6 @@ export function AdminStorage() {
 
   const deletePhotoFromStorage = async (photoUrl: string) => {
     try {
-      // Extract file path from the URL
       const urlParts = photoUrl.split("/item-photos/");
       if (urlParts.length > 1) {
         const filePath = urlParts[1];
@@ -196,7 +205,7 @@ export function AdminStorage() {
       .update({
         name: currentItem.name,
         item_type: currentItem.item_type,
-        quantity: currentItem.quantity,
+        quantity: currentItem.item_type === "material" ? 0 : currentItem.quantity,
         photo_url: photoUrl,
       })
       .eq("id", currentItem.id);
@@ -224,10 +233,8 @@ export function AdminStorage() {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
 
-    // Find the item to get its photo URL before deleting
     const itemToDelete = items.find(i => i.id === deleteDialog.itemId);
     
-    // Delete photo from storage if it exists
     if (itemToDelete?.photo_url) {
       await deletePhotoFromStorage(itemToDelete.photo_url);
     }
@@ -247,6 +254,7 @@ export function AdminStorage() {
   const handleFilterChange = (type: "all" | "equipment" | "material") => {
     setFilterType(type);
     setCurrentPage(1);
+    setSelectedIds(new Set());
   };
 
   const openEditModal = (item: Item) => {
@@ -264,6 +272,39 @@ export function AdminStorage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  // Multi-select helpers
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map(i => i.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    for (const id of selectedIds) {
+      const item = items.find(i => i.id === id);
+      if (item?.photo_url) {
+        await deletePhotoFromStorage(item.photo_url);
+      }
+      await supabase.from("items").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+    }
+    setSelectedIds(new Set());
+    setShowBulkDeleteDialog(false);
+    setIsBulkDeleting(false);
+    loadItems();
+    loadCounts();
+  };
 
   if (initialLoading) {
     return (
@@ -366,6 +407,15 @@ export function AdminStorage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
+                    <th className="px-4 py-4 text-left">
+                      <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-600">
+                        {selectedIds.size === items.length && items.length > 0 ? (
+                          <CheckSquare className="w-5 h-5 text-[#0db2ad]" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+                    </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Photo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Item Name</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
@@ -375,7 +425,16 @@ export function AdminStorage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition">
+                    <tr key={item.id} className={`transition ${selectedIds.has(item.id) ? "bg-blue-50" : "hover:bg-gray-50"}`}>
+                      <td className="px-4 py-4">
+                        <button onClick={() => toggleSelection(item.id)} className="text-gray-400 hover:text-gray-600">
+                          {selectedIds.has(item.id) ? (
+                            <CheckSquare className="w-5 h-5 text-[#0db2ad]" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-6 py-4">
                         {item.photo_url ? (
                           <img
@@ -413,7 +472,11 @@ export function AdminStorage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-gray-900 font-medium">{item.quantity}</span>
+                        {item.item_type === "equipment" ? (
+                          <span className="text-gray-900 font-medium">{item.quantity}</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
@@ -560,6 +623,26 @@ export function AdminStorage() {
         )}
       </div>
 
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-40">
+          <span className="text-sm font-medium">{selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""} selected</span>
+          <button
+            onClick={() => setShowBulkDeleteDialog(true)}
+            className="inline-flex items-center space-x-1 px-3 py-1.5 bg-red-600 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-gray-400 hover:text-white transition text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {showNewItemModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -618,22 +701,24 @@ export function AdminStorage() {
                   <option value="material">Material</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Initial Quantity</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={newItem.quantity}
-                  onChange={(e) =>
-                    setNewItem({
-                      ...newItem,
-                      quantity: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
-                />
-              </div>
+              {newItem.item_type === "equipment" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Initial Quantity</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newItem.quantity}
+                    onChange={(e) =>
+                      setNewItem({
+                        ...newItem,
+                        quantity: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required
+                  />
+                </div>
+              )}
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
@@ -717,22 +802,24 @@ export function AdminStorage() {
                   <option value="material">Material</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={currentItem.quantity}
-                  onChange={(e) =>
-                    setCurrentItem({
-                      ...currentItem,
-                      quantity: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  required
-                />
-              </div>
+              {currentItem.item_type === "equipment" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={currentItem.quantity}
+                    onChange={(e) =>
+                      setCurrentItem({
+                        ...currentItem,
+                        quantity: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required
+                  />
+                </div>
+              )}
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
@@ -768,6 +855,16 @@ export function AdminStorage() {
         onConfirm={handleConfirmDelete}
         onCancel={closeDeleteDialog}
         isProcessing={isDeleting}
+      />
+
+      <ConfirmDialog
+        isOpen={showBulkDeleteDialog}
+        title="Delete Selected Items"
+        message={`Are you sure you want to delete ${selectedIds.size} selected item${selectedIds.size !== 1 ? "s" : ""}? They will be moved to trash.`}
+        confirmLabel="Delete All"
+        onConfirm={handleBulkDelete}
+        onCancel={() => setShowBulkDeleteDialog(false)}
+        isProcessing={isBulkDeleting}
       />
     </Layout>
   );
