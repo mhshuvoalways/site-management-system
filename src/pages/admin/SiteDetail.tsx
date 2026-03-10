@@ -51,18 +51,16 @@ export function AdminSiteDetail() {
   const loadData = async () => {
     if (!id) return;
 
-    const [siteData, siteItemsData, itemsData, sitesData, allSiteItemsData] = await Promise.all([
+    const [siteData, siteItemsData, itemsData, sitesData] = await Promise.all([
       supabase.from("sites").select("*").eq("id", id).single(),
       supabase.from("site_items").select("*, item:items(*)").eq("site_id", id).is("deleted_at", null),
       supabase.from("items").select("*").is("deleted_at", null).order("name"),
       supabase.from("sites").select("*").neq("id", id).order("name"),
-      supabase.from("site_items").select("*").is("deleted_at", null),
     ]);
 
     setSite(siteData.data);
     setSiteItems(siteItemsData.data || []);
     setAllItems(itemsData.data || []);
-    setAllSiteItems(allSiteItemsData.data || []);
     setSites(sitesData.data || []);
     setLoading(false);
   };
