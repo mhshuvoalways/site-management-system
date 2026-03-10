@@ -10,6 +10,7 @@ import {
   Square,
   Trash2,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
