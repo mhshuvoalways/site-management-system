@@ -27,7 +27,6 @@ export function AdminSiteDetail() {
   const [site, setSite] = useState<Site | null>(null);
   const [siteItems, setSiteItems] = useState<SiteItem[]>([]);
   const [allItems, setAllItems] = useState<Item[]>([]);
-  const [allSiteItems, setAllSiteItems] = useState<SiteItem[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
