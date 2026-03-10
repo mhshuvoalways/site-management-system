@@ -1,76 +1,50 @@
 
 
-# Plan: Inventory UX Improvements
+# Trash / Undo Feature
 
-## Summary of Changes
+## Overview
+When you delete a site, item, or user, it will not be permanently removed right away. Instead, it will be moved to a "Trash" where you can review, restore, or permanently delete it.
 
-After reviewing the code, here is what each request means for our app and what we will implement:
+## How It Works
 
----
+1. **Soft Delete** -- Instead of removing records from the database, a `deleted_at` timestamp is added. When this field has a value, the record is considered "trashed."
 
-### 1. Remove quantity for materials
+2. **Existing pages stay clean** -- All current pages (Sites, Storage, Users) will automatically hide trashed records by filtering out anything with a `deleted_at` value.
 
-**Current behavior**: Materials on site detail pages show "Qty: 5" and have transfer/reduce quantity actions.
+3. **New Trash page** -- A dedicated Trash page (admin only) where you can:
+   - See all trashed Sites, Items, and Users in categorized tabs
+   - Restore individual items (sets `deleted_at` back to null)
+   - Permanently delete individual items
+   - "Empty Trash" to permanently delete everything at once
 
-**Change**: Materials become simple list items -- no quantity display, no quantity input when adding materials to a site. When adding a material, it gets added with quantity 1 (or incremented by 1) automatically. Remove the "Reduce" button for materials. Keep transfer and delete.
+4. **Users are special** -- When you "trash" a user, only the profile is soft-deleted (the auth account stays intact so it can be restored). Permanent deletion will call the existing `delete-user` edge function to remove the auth account.
 
-**Files**: `src/pages/admin/SiteDetail.tsx`, `src/pages/site-manager/SiteDetail.tsx`
+## Technical Details
 
-In the **Product Database** (Storage page), also hide the quantity column/input for materials since they are just logged, not counted.
+### Database Changes
+Add a nullable `deleted_at` (timestamptz) column to three tables:
+- `sites`
+- `items`
+- `profiles`
 
-**Files**: `src/pages/admin/Storage.tsx`
+### Files to Create
+- **`src/pages/admin/Trash.tsx`** -- Trash management page with tabs for Sites, Items, and Users. Includes restore, permanent delete, and empty trash functionality.
 
----
+### Files to Modify
+- **`src/App.tsx`** -- Add route `/admin/trash`
+- **`src/components/Layout.tsx`** -- Add "Trash" nav link for admin
+- **`src/pages/admin/Sites.tsx`** -- Change delete to soft delete (set `deleted_at = now()`) and filter out trashed sites in the query
+- **`src/pages/admin/Storage.tsx`** -- Change delete to soft delete and filter out trashed items in queries
+- **`src/pages/admin/UserManagement.tsx`** -- Change delete to soft delete (update profile's `deleted_at` instead of calling `delete-user` edge function) and filter out trashed users
+- **`src/pages/admin/Dashboard.tsx`** -- Add Trash quick action link
+- **`src/pages/site-manager/SitesList.tsx`** -- Filter out trashed sites (already handled by RLS/query, but ensure `deleted_at IS NULL` filter is applied)
 
-### 2. Remove "Out of stock" restriction for equipment
+### Query Changes
+All existing queries that fetch sites, items, or profiles will add `.is('deleted_at', null)` to exclude trashed records.
 
-**Current behavior**: Items with 0 available stock are disabled in the dropdown and labeled "(Out of stock)". The submit button is disabled when available stock is 0.
-
-**Change**: Remove the `disabled` attribute and "Out of stock" restriction from the item dropdown. Allow selecting any item regardless of stock level. Allow quantity 0 for equipment. This means the "available stock" concept from the master Product Database no longer blocks adding items to sites.
-
-**Files**: `src/pages/admin/SiteDetail.tsx`, `src/pages/site-manager/SiteDetail.tsx`
-
----
-
-### 3. Separate "Add Equipment" and "Add Material" buttons
-
-**Current behavior**: One "+ Add Item" button opens a modal where the user searches all items.
-
-**Change**: Replace with two buttons: "+ Add Equipment" and "+ Add Material". Each opens the same add modal but pre-filtered to that item type. For materials, the modal skips the quantity input entirely (auto-adds with quantity 1).
-
-**Files**: `src/pages/admin/SiteDetail.tsx`, `src/pages/site-manager/SiteDetail.tsx`
-
----
-
-### 4 & 5. Multi-select with checkboxes for bulk delete/transfer
-
-**Current behavior**: Items are deleted one at a time via individual action buttons.
-
-**Change**: Add a checkbox to each item row in the equipment and materials lists. When one or more items are selected, show a floating action bar with "Delete Selected" and "Transfer Selected" buttons. This applies to site detail pages (both admin and site-manager).
-
-For the Product Database (Storage page), add checkboxes for bulk delete as well.
-
-**Files**: `src/pages/admin/SiteDetail.tsx`, `src/pages/site-manager/SiteDetail.tsx`, `src/pages/admin/Storage.tsx`
-
-**Note**: The client mentioned checkboxes on photos and building control too, but those have different data structures. We will implement it for equipment/materials first and can extend later.
-
----
-
-## Technical Approach
-
-No database changes needed. All changes are UI-only.
-
-### State additions per SiteDetail page:
-- `addItemType: 'equipment' | 'material'` -- tracks which button was clicked
-- `selectedEquipmentIds: Set<string>` -- tracks checked equipment items
-- `selectedMaterialIds: Set<string>` -- tracks checked material items
-
-### Key logic changes:
-- Add modal: filter `filteredItems` by `addItemType`; if `addItemType === 'material'`, hide quantity input and submit with quantity = 1
-- Item dropdown: remove `disabled={itemAvailableStock === 0}` and the "Out of stock" styling
-- Equipment list rows: add checkbox, show "Qty: X" as before
-- Material list rows: add checkbox, hide "Qty: X", hide "Reduce" button
-- When items are selected: show bulk action bar with Delete Selected / Transfer Selected
-- Bulk delete: loop through selected IDs and soft-delete each
-- Bulk transfer: open transfer modal for all selected items (transfer same quantity to same site)
+### Trash Page Features
+- Three tabs: Sites, Items, Users
+- Each trashed record shows its name, when it was deleted, and Restore / Delete Forever buttons
+- "Empty All Trash" button with confirmation dialog
+- Trash count badge in the navigation
 
