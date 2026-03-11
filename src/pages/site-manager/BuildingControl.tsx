@@ -198,6 +198,48 @@ export function SiteManagerBuildingControl() {
     }
   };
 
+  const togglePhotoSelection = (photoId: string) => {
+    setSelectedPhotoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  };
+
+  const handleBulkDeletePhotos = async () => {
+    if (selectedPhotoIds.size === 0) return;
+    setIsBulkDeleting(true);
+
+    const allPhotos: BuildingControlPhoto[] = [];
+    for (const report of reports) {
+      if (report.photos) {
+        for (const photo of report.photos) {
+          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
+        }
+      }
+    }
+
+    const fileNames = allPhotos
+      .map((p) => {
+        const parts = p.photo_url.split("/building-control-photos/");
+        return parts.length > 1 ? parts[1] : null;
+      })
+      .filter((name): name is string => name !== null);
+
+    if (fileNames.length > 0) {
+      await supabase.storage.from("building-control-photos").remove(fileNames);
+    }
+
+    for (const photoId of selectedPhotoIds) {
+      await supabase.from("building_control_photos").delete().eq("id", photoId);
+    }
+
+    setSelectedPhotoIds(new Set());
+    setIsBulkDeleting(false);
+    loadData();
+  };
+
   if (loading) {
     return (
       <Layout>
