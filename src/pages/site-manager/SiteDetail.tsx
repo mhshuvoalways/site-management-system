@@ -376,7 +376,7 @@ export function SiteManagerSiteDetail() {
               className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition"
             >
               <Plus className="w-5 h-5" />
-              <span>Add Equipment</span>
+              <span>Register New Equipment</span>
             </button>
             <button
               onClick={() => openAddModal("material")}
