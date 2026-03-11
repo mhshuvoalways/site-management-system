@@ -48,6 +48,7 @@ export function AdminSiteDetail() {
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [addItemError, setAddItemError] = useState("");
 
   const loadData = async () => {
     if (!id) return;
@@ -75,13 +76,14 @@ export function AdminSiteDetail() {
     if (!id || !selectedItem) return;
 
     const finalQuantity = addItemType === "material" ? 1 : quantity;
-    if (addItemType === "equipment" && finalQuantity <= 0) { alert("Quantity must be greater than 0"); return; }
+    if (addItemType === "equipment" && finalQuantity <= 0) { setAddItemError("Quantity must be greater than 0"); return; }
 
     const selectedItemInfo = allItems.find(item => item.id === selectedItem);
     if (selectedItemInfo && finalQuantity > selectedItemInfo.quantity) {
-      alert(`Cannot exceed available quantity of ${selectedItemInfo.quantity}`);
+      setAddItemError(`Cannot exceed available quantity of ${selectedItemInfo.quantity}`);
       return;
     }
+    setAddItemError("");
 
     try {
       const { data: existing, error: selectError } = await supabase
@@ -320,6 +322,7 @@ export function AdminSiteDetail() {
     setSelectedItem("");
     setShowItemDropdown(false);
     setQuantity(1);
+    setAddItemError("");
   };
 
   if (loading) {
@@ -813,6 +816,9 @@ export function AdminSiteDetail() {
                     required
                   />
                 </div>
+              )}
+              {addItemError && (
+                <p className="text-sm text-red-600 font-medium">{addItemError}</p>
               )}
               <div className="flex space-x-3 pt-4">
                 <button
