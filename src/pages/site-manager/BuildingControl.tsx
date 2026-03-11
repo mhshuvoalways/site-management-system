@@ -208,6 +208,34 @@ export function SiteManagerBuildingControl() {
     });
   };
 
+  const toggleReportSelection = (reportId: string) => {
+    setSelectedReportIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(reportId)) next.delete(reportId);
+      else next.add(reportId);
+      return next;
+    });
+  };
+
+  const allPhotoIds = reports.flatMap(r => (r.photos || []).map(p => p.id));
+  const allReportIds = reports.map(r => r.id);
+
+  const selectAllPhotos = () => {
+    if (selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0) {
+      setSelectedPhotoIds(new Set());
+    } else {
+      setSelectedPhotoIds(new Set(allPhotoIds));
+    }
+  };
+
+  const selectAllReports = () => {
+    if (selectedReportIds.size === allReportIds.length && allReportIds.length > 0) {
+      setSelectedReportIds(new Set());
+    } else {
+      setSelectedReportIds(new Set(allReportIds));
+    }
+  };
+
   const handleBulkDeletePhotos = async () => {
     if (selectedPhotoIds.size === 0) return;
     setIsBulkDeleting(true);
@@ -240,6 +268,45 @@ export function SiteManagerBuildingControl() {
     setIsBulkDeleting(false);
     loadData();
   };
+
+  const handleBulkDeleteReports = async () => {
+    if (selectedReportIds.size === 0) return;
+    setIsBulkDeleting(true);
+
+    for (const reportId of selectedReportIds) {
+      const report = reports.find(r => r.id === reportId);
+      if (!report) continue;
+
+      if (report.photos && report.photos.length > 0) {
+        const fileNames = report.photos
+          .map((photo) => {
+            const parts = photo.photo_url.split("/building-control-photos/");
+            return parts.length > 1 ? parts[1] : null;
+          })
+          .filter((name): name is string => name !== null);
+
+        if (fileNames.length > 0) {
+          await supabase.storage.from("building-control-photos").remove(fileNames);
+        }
+      }
+
+      await supabase.from("building_control_photos").delete().eq("building_control_id", reportId);
+      await supabase.from("building_control").delete().eq("id", reportId);
+    }
+
+    setSelectedReportIds(new Set());
+    setIsBulkDeleting(false);
+    loadData();
+  };
+
+  const handleBulkDeleteAll = async () => {
+    setIsBulkDeleting(true);
+    if (selectedReportIds.size > 0) await handleBulkDeleteReports();
+    if (selectedPhotoIds.size > 0) await handleBulkDeletePhotos();
+    setIsBulkDeleting(false);
+  };
+
+  const totalSelected = selectedPhotoIds.size + selectedReportIds.size;
 
   if (loading) {
     return (
