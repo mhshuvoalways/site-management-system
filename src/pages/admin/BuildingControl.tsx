@@ -447,6 +447,35 @@ export function BuildingControlPage() {
           </button>
         </div>
 
+        {reports.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={selectAllReports}
+              className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            >
+              {selectedReportIds.size === allReportIds.length && allReportIds.length > 0 ? (
+                <CheckSquare className="w-4 h-4 text-[#0db2ad]" />
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
+              <span>All Reports ({reports.length})</span>
+            </button>
+            {allPhotoIds.length > 0 && (
+              <button
+                onClick={selectAllPhotos}
+                className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                {selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0 ? (
+                  <CheckSquare className="w-4 h-4 text-[#0db2ad]" />
+                ) : (
+                  <Square className="w-4 h-4 text-gray-400" />
+                )}
+                <span>All Photos ({allPhotoIds.length})</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {reports.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
