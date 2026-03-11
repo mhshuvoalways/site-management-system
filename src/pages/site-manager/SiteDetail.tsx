@@ -313,6 +313,7 @@ export function SiteManagerSiteDetail() {
     setSelectedItem("");
     setShowItemDropdown(false);
     setQuantity(1);
+    setAddItemError("");
   };
 
   if (loading) {

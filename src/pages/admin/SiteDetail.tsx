@@ -322,6 +322,7 @@ export function AdminSiteDetail() {
     setSelectedItem("");
     setShowItemDropdown(false);
     setQuantity(1);
+    setAddItemError("");
   };
 
   if (loading) {
