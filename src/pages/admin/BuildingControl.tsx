@@ -58,6 +58,8 @@ export function BuildingControlPage() {
   });
   const [isDeletingReport, setIsDeletingReport] = useState(false);
   const [viewingPhoto, setViewingPhoto] = useState<BuildingControlPhoto | null>(null);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
