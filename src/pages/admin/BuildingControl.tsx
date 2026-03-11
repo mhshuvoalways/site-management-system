@@ -498,10 +498,20 @@ export function BuildingControlPage() {
             {reports.map((report) => (
               <div
                 key={report.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+                className={`bg-white rounded-xl shadow-sm border p-6 ${selectedReportIds.has(report.id) ? "border-[#0db2ad] ring-2 ring-[#0db2ad]" : "border-gray-100"}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3">
+                    <button
+                      onClick={() => toggleReportSelection(report.id)}
+                      className="mt-1 flex-shrink-0"
+                    >
+                      {selectedReportIds.has(report.id) ? (
+                        <CheckSquare className="w-5 h-5 text-[#0db2ad]" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-400" />
+                      )}
+                    </button>
                     <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-3 rounded-lg">
                       <FileText className="w-6 h-6 text-white" />
                     </div>
