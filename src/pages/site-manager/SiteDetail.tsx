@@ -804,11 +804,6 @@ export function SiteManagerSiteDetail() {
                 <p className="text-lg font-bold text-gray-900">
                   {capitalizeWords(currentSiteItem.item?.name)}
                 </p>
-                {currentSiteItem.item?.item_type === "equipment" && (
-                  <p className="text-sm text-gray-600">
-                    Available: {currentSiteItem.quantity}
-                  </p>
-                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
