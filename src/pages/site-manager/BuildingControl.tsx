@@ -1,9 +1,12 @@
 import {
   ArrowLeft,
   Calendar,
+  CheckSquare,
   FileText,
   Image as ImageIcon,
   Plus,
+  Square,
+  Trash2,
   Upload,
   User,
   X,
