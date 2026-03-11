@@ -349,7 +349,7 @@ export function SiteManagerBuildingControl() {
                       {report.photos.map((photo: BuildingControlPhoto) => (
                         <div
                           key={photo.id}
-                          className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group"
+                          className={`bg-gray-50 rounded-lg overflow-hidden border group ${selectedPhotoIds.has(photo.id) ? "border-[#0db2ad] ring-2 ring-[#0db2ad]" : "border-gray-200"}`}
                         >
                           <div className="relative">
                             <img
@@ -357,6 +357,17 @@ export function SiteManagerBuildingControl() {
                               alt="Building control"
                               className="w-full h-48 object-cover"
                             />
+                            <button
+                              type="button"
+                              onClick={() => togglePhotoSelection(photo.id)}
+                              className="absolute top-2 left-2 p-1 rounded transition"
+                            >
+                              {selectedPhotoIds.has(photo.id) ? (
+                                <CheckSquare className="w-6 h-6 text-[#0db2ad]" />
+                              ) : (
+                                <Square className="w-6 h-6 text-white drop-shadow-lg" />
+                              )}
+                            </button>
                             <button
                               onClick={() =>
                                 openDeleteDialog(photo.id, photo.photo_url)
