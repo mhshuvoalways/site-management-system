@@ -738,6 +738,11 @@ export function SiteManagerSiteDetail() {
                             <p className="text-xs text-gray-500">
                               {capitalizeWords(item.item_type)}
                             </p>
+                            {addItemType === "equipment" && (
+                              <p className="text-xs text-blue-600 font-medium">
+                                Available: {item.quantity}
+                              </p>
+                            )}
                           </div>
                         </button>
                       ))
