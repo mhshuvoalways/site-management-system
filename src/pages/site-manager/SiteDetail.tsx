@@ -1008,7 +1008,7 @@ export function SiteManagerSiteDetail() {
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {siteItems.filter(si => allSelectedIds.includes(si.id)).map(si => (
                     <p key={si.id} className="text-sm font-medium text-gray-900">
-                      {capitalizeWords(si.item?.name)} {si.item?.item_type === "equipment" ? `(Qty: ${si.quantity})` : ""}
+                      {capitalizeWords(si.item?.name)}
                     </p>
                   ))}
                 </div>
