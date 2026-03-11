@@ -631,13 +631,16 @@ export function SiteManagerBuildingControl() {
         isProcessing={isDeleting}
       />
 
-      {selectedPhotoIds.size > 0 && (
+      {totalSelected > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
           <span className="text-sm font-medium">
-            {selectedPhotoIds.size} photo{selectedPhotoIds.size > 1 ? "s" : ""} selected
+            {selectedReportIds.size > 0 && `${selectedReportIds.size} report${selectedReportIds.size > 1 ? "s" : ""}`}
+            {selectedReportIds.size > 0 && selectedPhotoIds.size > 0 && ", "}
+            {selectedPhotoIds.size > 0 && `${selectedPhotoIds.size} photo${selectedPhotoIds.size > 1 ? "s" : ""}`}
+            {" "}selected
           </span>
           <button
-            onClick={handleBulkDeletePhotos}
+            onClick={handleBulkDeleteAll}
             disabled={isBulkDeleting}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
           >
@@ -645,7 +648,7 @@ export function SiteManagerBuildingControl() {
             <span>{isBulkDeleting ? "Deleting..." : "Delete Selected"}</span>
           </button>
           <button
-            onClick={() => setSelectedPhotoIds(new Set())}
+            onClick={() => { setSelectedPhotoIds(new Set()); setSelectedReportIds(new Set()); }}
             className="px-3 py-2 text-gray-300 hover:text-white transition"
           >
             Cancel
