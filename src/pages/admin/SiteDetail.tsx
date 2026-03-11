@@ -817,6 +817,9 @@ export function AdminSiteDetail() {
                   />
                 </div>
               )}
+              {addItemError && (
+                <p className="text-sm text-red-600 font-medium">{addItemError}</p>
+              )}
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
