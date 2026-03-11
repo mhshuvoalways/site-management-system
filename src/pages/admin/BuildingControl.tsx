@@ -1,10 +1,12 @@
 import {
   ArrowLeft,
   Calendar,
+  CheckSquare,
   Edit,
   FileText,
   Image as ImageIcon,
   Plus,
+  Square,
   Trash2,
   Upload,
   User,
@@ -56,6 +58,8 @@ export function BuildingControlPage() {
   });
   const [isDeletingReport, setIsDeletingReport] = useState(false);
   const [viewingPhoto, setViewingPhoto] = useState<BuildingControlPhoto | null>(null);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -287,6 +291,51 @@ export function BuildingControlPage() {
     }
   };
 
+  const togglePhotoSelection = (photoId: string) => {
+    setSelectedPhotoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  };
+
+  const handleBulkDeletePhotos = async () => {
+    if (selectedPhotoIds.size === 0) return;
+    setIsBulkDeleting(true);
+
+    // Gather all photo URLs for storage deletion
+    const allPhotos: BuildingControlPhoto[] = [];
+    for (const report of reports) {
+      if (report.photos) {
+        for (const photo of report.photos) {
+          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
+        }
+      }
+    }
+
+    // Delete from storage
+    const fileNames = allPhotos
+      .map((p) => {
+        const parts = p.photo_url.split("/building-control-photos/");
+        return parts.length > 1 ? parts[1] : null;
+      })
+      .filter((name): name is string => name !== null);
+
+    if (fileNames.length > 0) {
+      await supabase.storage.from("building-control-photos").remove(fileNames);
+    }
+
+    // Delete from database
+    for (const photoId of selectedPhotoIds) {
+      await supabase.from("building_control_photos").delete().eq("id", photoId);
+    }
+
+    setSelectedPhotoIds(new Set());
+    setIsBulkDeleting(false);
+    loadData();
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -412,7 +461,7 @@ export function BuildingControlPage() {
                       {report.photos.map((photo: BuildingControlPhoto) => (
                         <div
                           key={photo.id}
-                          className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group"
+                          className={`bg-gray-50 rounded-lg overflow-hidden border group ${selectedPhotoIds.has(photo.id) ? "border-[#0db2ad] ring-2 ring-[#0db2ad]" : "border-gray-200"}`}
                         >
                           <div className="relative">
                             <img
@@ -421,6 +470,17 @@ export function BuildingControlPage() {
                               className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition"
                               onClick={() => setViewingPhoto(photo)}
                             />
+                            <button
+                              type="button"
+                              onClick={() => togglePhotoSelection(photo.id)}
+                              className="absolute top-2 left-2 p-1 rounded transition"
+                            >
+                              {selectedPhotoIds.has(photo.id) ? (
+                                <CheckSquare className="w-6 h-6 text-[#0db2ad]" />
+                              ) : (
+                                <Square className="w-6 h-6 text-white drop-shadow-lg" />
+                              )}
+                            </button>
                             <button
                               onClick={() =>
                                 openDeletePhotoDialog(photo.id, photo.photo_url)
@@ -656,6 +716,28 @@ export function BuildingControlPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {selectedPhotoIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
+          <span className="text-sm font-medium">
+            {selectedPhotoIds.size} photo{selectedPhotoIds.size > 1 ? "s" : ""} selected
+          </span>
+          <button
+            onClick={handleBulkDeletePhotos}
+            disabled={isBulkDeleting}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>{isBulkDeleting ? "Deleting..." : "Delete Selected"}</span>
+          </button>
+          <button
+            onClick={() => setSelectedPhotoIds(new Set())}
+            className="px-3 py-2 text-gray-300 hover:text-white transition"
+          >
+            Cancel
+          </button>
         </div>
       )}
     </Layout>
