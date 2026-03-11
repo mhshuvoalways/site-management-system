@@ -46,6 +46,7 @@ export function SiteManagerBuildingControl() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
@@ -207,6 +208,34 @@ export function SiteManagerBuildingControl() {
     });
   };
 
+  const toggleReportSelection = (reportId: string) => {
+    setSelectedReportIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(reportId)) next.delete(reportId);
+      else next.add(reportId);
+      return next;
+    });
+  };
+
+  const allPhotoIds = reports.flatMap(r => (r.photos || []).map(p => p.id));
+  const allReportIds = reports.map(r => r.id);
+
+  const selectAllPhotos = () => {
+    if (selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0) {
+      setSelectedPhotoIds(new Set());
+    } else {
+      setSelectedPhotoIds(new Set(allPhotoIds));
+    }
+  };
+
+  const selectAllReports = () => {
+    if (selectedReportIds.size === allReportIds.length && allReportIds.length > 0) {
+      setSelectedReportIds(new Set());
+    } else {
+      setSelectedReportIds(new Set(allReportIds));
+    }
+  };
+
   const handleBulkDeletePhotos = async () => {
     if (selectedPhotoIds.size === 0) return;
     setIsBulkDeleting(true);
@@ -239,6 +268,45 @@ export function SiteManagerBuildingControl() {
     setIsBulkDeleting(false);
     loadData();
   };
+
+  const handleBulkDeleteReports = async () => {
+    if (selectedReportIds.size === 0) return;
+    setIsBulkDeleting(true);
+
+    for (const reportId of selectedReportIds) {
+      const report = reports.find(r => r.id === reportId);
+      if (!report) continue;
+
+      if (report.photos && report.photos.length > 0) {
+        const fileNames = report.photos
+          .map((photo) => {
+            const parts = photo.photo_url.split("/building-control-photos/");
+            return parts.length > 1 ? parts[1] : null;
+          })
+          .filter((name): name is string => name !== null);
+
+        if (fileNames.length > 0) {
+          await supabase.storage.from("building-control-photos").remove(fileNames);
+        }
+      }
+
+      await supabase.from("building_control_photos").delete().eq("building_control_id", reportId);
+      await supabase.from("building_control").delete().eq("id", reportId);
+    }
+
+    setSelectedReportIds(new Set());
+    setIsBulkDeleting(false);
+    loadData();
+  };
+
+  const handleBulkDeleteAll = async () => {
+    setIsBulkDeleting(true);
+    if (selectedReportIds.size > 0) await handleBulkDeleteReports();
+    if (selectedPhotoIds.size > 0) await handleBulkDeletePhotos();
+    setIsBulkDeleting(false);
+  };
+
+  const totalSelected = selectedPhotoIds.size + selectedReportIds.size;
 
   if (loading) {
     return (
@@ -285,6 +353,35 @@ export function SiteManagerBuildingControl() {
           </button>
         </div>
 
+        {reports.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={selectAllReports}
+              className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            >
+              {selectedReportIds.size === allReportIds.length && allReportIds.length > 0 ? (
+                <CheckSquare className="w-4 h-4 text-[#0db2ad]" />
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
+              <span>All Reports ({reports.length})</span>
+            </button>
+            {allPhotoIds.length > 0 && (
+              <button
+                onClick={selectAllPhotos}
+                className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                {selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0 ? (
+                  <CheckSquare className="w-4 h-4 text-[#0db2ad]" />
+                ) : (
+                  <Square className="w-4 h-4 text-gray-400" />
+                )}
+                <span>All Photos ({allPhotoIds.length})</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {reports.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -307,10 +404,20 @@ export function SiteManagerBuildingControl() {
             {reports.map((report) => (
               <div
                 key={report.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+                className={`bg-white rounded-xl shadow-sm border p-6 ${selectedReportIds.has(report.id) ? "border-[#0db2ad] ring-2 ring-[#0db2ad]" : "border-gray-100"}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3">
+                    <button
+                      onClick={() => toggleReportSelection(report.id)}
+                      className="mt-1 flex-shrink-0"
+                    >
+                      {selectedReportIds.has(report.id) ? (
+                        <CheckSquare className="w-5 h-5 text-[#0db2ad]" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-400" />
+                      )}
+                    </button>
                     <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-3 rounded-lg">
                       <FileText className="w-6 h-6 text-white" />
                     </div>
@@ -524,13 +631,16 @@ export function SiteManagerBuildingControl() {
         isProcessing={isDeleting}
       />
 
-      {selectedPhotoIds.size > 0 && (
+      {totalSelected > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
           <span className="text-sm font-medium">
-            {selectedPhotoIds.size} photo{selectedPhotoIds.size > 1 ? "s" : ""} selected
+            {selectedReportIds.size > 0 && `${selectedReportIds.size} report${selectedReportIds.size > 1 ? "s" : ""}`}
+            {selectedReportIds.size > 0 && selectedPhotoIds.size > 0 && ", "}
+            {selectedPhotoIds.size > 0 && `${selectedPhotoIds.size} photo${selectedPhotoIds.size > 1 ? "s" : ""}`}
+            {" "}selected
           </span>
           <button
-            onClick={handleBulkDeletePhotos}
+            onClick={handleBulkDeleteAll}
             disabled={isBulkDeleting}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
           >
@@ -538,7 +648,7 @@ export function SiteManagerBuildingControl() {
             <span>{isBulkDeleting ? "Deleting..." : "Delete Selected"}</span>
           </button>
           <button
-            onClick={() => setSelectedPhotoIds(new Set())}
+            onClick={() => { setSelectedPhotoIds(new Set()); setSelectedReportIds(new Set()); }}
             className="px-3 py-2 text-gray-300 hover:text-white transition"
           >
             Cancel
