@@ -409,7 +409,7 @@ export function AdminSiteDetail() {
               className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition"
             >
               <Plus className="w-5 h-5" />
-              <span>Add Equipment</span>
+              <span>Register New Equipment</span>
             </button>
             <button
               onClick={() => openAddModal("material")}
@@ -705,7 +705,7 @@ export function AdminSiteDetail() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                Add {addItemType === "equipment" ? "Equipment" : "Material"} to Site
+                {addItemType === "equipment" ? "Register New Equipment" : "Add Material"} to Site
               </h2>
               <button
                 type="button"
@@ -777,6 +777,11 @@ export function AdminSiteDetail() {
                             <p className="text-xs text-gray-500">
                               {capitalizeWords(item.item_type)}
                             </p>
+                            {addItemType === "equipment" && (
+                              <p className="text-xs text-blue-600 font-medium">
+                                Available: {item.quantity}
+                              </p>
+                            )}
                           </div>
                         </button>
                       ))
@@ -822,7 +827,7 @@ export function AdminSiteDetail() {
                   disabled={!selectedItem}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add {addItemType === "equipment" ? "Equipment" : "Material"}
+                  {addItemType === "equipment" ? "Register Equipment" : "Add Material"}
                 </button>
               </div>
             </form>
