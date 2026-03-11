@@ -46,6 +46,7 @@ export function SiteManagerBuildingControl() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
