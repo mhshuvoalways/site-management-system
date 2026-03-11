@@ -48,6 +48,7 @@ export function AdminSiteDetail() {
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [addItemError, setAddItemError] = useState("");
 
   const loadData = async () => {
     if (!id) return;

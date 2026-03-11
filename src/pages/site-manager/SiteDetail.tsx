@@ -47,6 +47,7 @@ export function SiteManagerSiteDetail() {
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [addItemError, setAddItemError] = useState("");
 
   useEffect(() => {
     loadData();
