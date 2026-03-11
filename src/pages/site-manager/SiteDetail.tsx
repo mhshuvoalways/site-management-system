@@ -76,6 +76,12 @@ export function SiteManagerSiteDetail() {
     const finalQuantity = addItemType === "material" ? 1 : quantity;
     if (addItemType === "equipment" && finalQuantity <= 0) { alert("Quantity must be greater than 0"); return; }
 
+    const selectedItemInfo = allItems.find(item => item.id === selectedItem);
+    if (selectedItemInfo && finalQuantity > selectedItemInfo.quantity) {
+      alert(`Cannot exceed available quantity of ${selectedItemInfo.quantity}`);
+      return;
+    }
+
     try {
       const { data: existing, error: selectError } = await supabase
         .from("site_items")
