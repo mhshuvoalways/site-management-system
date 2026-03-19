@@ -50,6 +50,13 @@ export function SiteManagerSiteDetail() {
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [addItemError, setAddItemError] = useState("");
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestItemId, setRequestItemId] = useState("");
+  const [requestQuantity, setRequestQuantity] = useState(1);
+  const [requestNotes, setRequestNotes] = useState("");
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [historyItem, setHistoryItem] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadData();
