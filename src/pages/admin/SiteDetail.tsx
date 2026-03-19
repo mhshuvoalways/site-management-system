@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckSquare,
+  Clock,
   FileText,
   Minus,
   Package,
@@ -16,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { EquipmentHistory } from "../../components/EquipmentHistory";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
