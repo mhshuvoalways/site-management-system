@@ -64,6 +64,7 @@ export function AdminStorage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [historyItem, setHistoryItem] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadItems();

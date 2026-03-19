@@ -1118,6 +1118,13 @@ export function AdminSiteDetail() {
           </div>
         </div>
       )}
+
+      <EquipmentHistory
+        isOpen={!!historyItem}
+        onClose={() => setHistoryItem(null)}
+        itemId={historyItem?.id || ""}
+        itemName={historyItem?.name || ""}
+      />
     </Layout>
   );
 }
