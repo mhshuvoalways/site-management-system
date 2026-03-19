@@ -6,6 +6,7 @@ import { BuildingControlPage } from "./pages/admin/BuildingControl";
 import { AdminDashboard } from "./pages/admin/Dashboard";
 import { AdminSiteDetail } from "./pages/admin/SiteDetail";
 import { TransfersHistory } from './pages/admin/TransfersHistory';
+import { ItemRequestsPage } from './pages/admin/ItemRequests';
 import { AdminSiteManagers } from "./pages/admin/SiteManagers";
 import { SiteWorkersPage } from "./pages/admin/SiteWorkers";
 import { AdminSites } from "./pages/admin/Sites";
