@@ -51,6 +51,7 @@ export function AdminSiteDetail() {
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [addItemError, setAddItemError] = useState("");
+  const [historyItem, setHistoryItem] = useState<{ id: string; name: string } | null>(null);
 
   const loadData = async () => {
     if (!id) return;
