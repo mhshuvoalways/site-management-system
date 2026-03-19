@@ -56,6 +56,7 @@ function App() {
                   <Route path="/product-database" element={<AdminStorage />} />
                   <Route path="/users" element={<UserManagement />} />
                   <Route path="/trash" element={<AdminTrash />} />
+                  <Route path="/requests" element={<ItemRequestsPage />} />
                 </Routes>
               </ProtectedRoute>
             }

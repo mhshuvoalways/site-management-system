@@ -73,8 +73,6 @@ export function ItemRequestsPage() {
     loadRequests();
   };
 
-  const pendingCount = requests.filter((r) => r.status === "pending").length;
-
   if (loading) {
     return (
       <Layout>
