@@ -548,7 +548,21 @@ export function SiteManagerSiteDetail() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => setHistoryItem({ id: siteItem.item_id, name: siteItem.item?.name || "" })}
+                          className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg transition"
+                          title="History"
+                        >
+                          <Clock className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openRequestModal(siteItem.item_id)}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                          title="Request More Stock"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
                         <button
                           onClick={() => {
                             setCurrentSiteItem(siteItem);
