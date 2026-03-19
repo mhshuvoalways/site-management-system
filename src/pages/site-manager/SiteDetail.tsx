@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   CheckSquare,
   Clock,
   FileText,
