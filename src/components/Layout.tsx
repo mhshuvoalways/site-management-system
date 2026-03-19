@@ -26,6 +26,17 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+  useEffect(() => {
+    if (profile?.role === "admin") {
+      supabase
+        .from("item_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending")
+        .then(({ count }) => setPendingRequestCount(count || 0));
+    }
+  }, [profile?.role]);
 
   const handleSignOut = async () => {
     await signOut();
