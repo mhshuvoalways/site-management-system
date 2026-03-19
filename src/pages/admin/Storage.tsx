@@ -878,6 +878,13 @@ export function AdminStorage() {
         onCancel={() => setShowBulkDeleteDialog(false)}
         isProcessing={isBulkDeleting}
       />
+
+      <EquipmentHistory
+        isOpen={!!historyItem}
+        onClose={() => setHistoryItem(null)}
+        itemId={historyItem?.id || ""}
+        itemName={historyItem?.name || ""}
+      />
     </Layout>
   );
 }
