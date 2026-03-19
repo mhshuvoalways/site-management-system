@@ -483,6 +483,15 @@ export function AdminStorage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          {item.item_type === "equipment" && (
+                            <button
+                              onClick={() => setHistoryItem({ id: item.id, name: item.name })}
+                              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+                              title="History"
+                            >
+                              <Clock className="w-5 h-5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => openEditModal(item)}
                             className="p-2 text-[#0db2ad] hover:bg-blue-50 rounded-lg transition"
