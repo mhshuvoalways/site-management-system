@@ -1,56 +1,50 @@
 
 
-# Feature 1: Item Request & Approval System
+# Trash / Undo Feature
 
-## What it does
-Site managers can request increasing an item's quantity in the Product Database (e.g. "We bought 10 more AcroProps"). The admin sees these requests on a dedicated "Requests" page and can approve or decline. On approval, the item's quantity in the Product Database increases.
+## Overview
+When you delete a site, item, or user, it will not be permanently removed right away. Instead, it will be moved to a "Trash" where you can review, restore, or permanently delete it.
 
-## Database
-New `item_requests` table:
-- `id` (uuid, PK)
-- `item_id` (uuid, FK to items)
-- `requested_by` (uuid, FK to profiles)
-- `quantity` (integer) -- how many more to add
-- `status` (text: 'pending' / 'approved' / 'declined')
-- `reviewed_by` (uuid, nullable)
-- `notes` (text, nullable) -- optional reason from site manager
-- `created_at`, `reviewed_at` (timestamptz)
+## How It Works
 
-RLS: Site managers can insert and view their own requests. Admins can view all and update status.
+1. **Soft Delete** -- Instead of removing records from the database, a `deleted_at` timestamp is added. When this field has a value, the record is considered "trashed."
 
-## New files
-- **`src/pages/admin/ItemRequests.tsx`** -- Full page showing all requests (filterable by status). Each row shows item name, requester, quantity, date, and Approve/Decline buttons. On approve, updates `items.quantity` and sets request status.
-- Route added at `/admin/requests` in `src/App.tsx`
+2. **Existing pages stay clean** -- All current pages (Sites, Storage, Users) will automatically hide trashed records by filtering out anything with a `deleted_at` value.
 
-## Modified files
-- **`src/components/Layout.tsx`** -- Add "Requests" nav link for admin (with pending count badge)
-- **`src/pages/site-manager/SiteDetail.tsx`** -- Add a "Request More Stock" button (visible for equipment items). Opens a small modal where the site manager enters the quantity and optional note, then inserts into `item_requests`.
-- **`src/App.tsx`** -- Add `/admin/requests` route
+3. **New Trash page** -- A dedicated Trash page (admin only) where you can:
+   - See all trashed Sites, Items, and Users in categorized tabs
+   - Restore individual items (sets `deleted_at` back to null)
+   - Permanently delete individual items
+   - "Empty Trash" to permanently delete everything at once
 
----
+4. **Users are special** -- When you "trash" a user, only the profile is soft-deleted (the auth account stays intact so it can be restored). Permanent deletion will call the existing `delete-user` edge function to remove the auth account.
 
-# Feature 2: Equipment History
+## Technical Details
 
-## What it does
-A "History" button on each equipment item (in Product Database and Site Detail pages) opens a modal showing where that item has been over time, using data from the existing `transfers` table. Includes weekly and monthly view toggles.
+### Database Changes
+Add a nullable `deleted_at` (timestamptz) column to three tables:
+- `sites`
+- `items`
+- `profiles`
 
-## No database changes needed
-The `transfers` table already records `item_id`, `from_site_id`, `to_site_id`, `quantity`, and `created_at`.
+### Files to Create
+- **`src/pages/admin/Trash.tsx`** -- Trash management page with tabs for Sites, Items, and Users. Includes restore, permanent delete, and empty trash functionality.
 
-## New files
-- **`src/components/EquipmentHistory.tsx`** -- Reusable modal component. Takes an `item_id` and `item_name`. Queries `transfers` filtered by that item, joins site names. Displays a timeline grouped by week or month (toggle). Each entry shows: date, from site, to site, quantity moved.
+### Files to Modify
+- **`src/App.tsx`** -- Add route `/admin/trash`
+- **`src/components/Layout.tsx`** -- Add "Trash" nav link for admin
+- **`src/pages/admin/Sites.tsx`** -- Change delete to soft delete (set `deleted_at = now()`) and filter out trashed sites in the query
+- **`src/pages/admin/Storage.tsx`** -- Change delete to soft delete and filter out trashed items in queries
+- **`src/pages/admin/UserManagement.tsx`** -- Change delete to soft delete (update profile's `deleted_at` instead of calling `delete-user` edge function) and filter out trashed users
+- **`src/pages/admin/Dashboard.tsx`** -- Add Trash quick action link
+- **`src/pages/site-manager/SitesList.tsx`** -- Filter out trashed sites (already handled by RLS/query, but ensure `deleted_at IS NULL` filter is applied)
 
-## Modified files
-- **`src/pages/admin/Storage.tsx`** -- Add "History" button on each equipment row (not materials). Clicking opens the EquipmentHistory modal.
-- **`src/pages/admin/SiteDetail.tsx`** -- Add "History" button on each equipment item in the site's equipment list.
-- **`src/pages/site-manager/SiteDetail.tsx`** -- Same "History" button for site manager view.
+### Query Changes
+All existing queries that fetch sites, items, or profiles will add `.is('deleted_at', null)` to exclude trashed records.
 
----
-
-## Implementation order
-1. Create `item_requests` table with RLS
-2. Build admin Requests page + route + nav link
-3. Add "Request More Stock" flow to site manager SiteDetail
-4. Build EquipmentHistory modal component
-5. Add History buttons to Storage, admin SiteDetail, and site-manager SiteDetail
+### Trash Page Features
+- Three tabs: Sites, Items, Users
+- Each trashed record shows its name, when it was deleted, and Restore / Delete Forever buttons
+- "Empty All Trash" button with confirmation dialog
+- Trash count badge in the navigation
 

@@ -1,7 +1,9 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   CheckSquare,
+  Clock,
   FileText,
   Minus,
   Package,
@@ -15,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { EquipmentHistory } from "../../components/EquipmentHistory";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
@@ -48,6 +51,13 @@ export function SiteManagerSiteDetail() {
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [addItemError, setAddItemError] = useState("");
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestItemId, setRequestItemId] = useState("");
+  const [requestQuantity, setRequestQuantity] = useState(1);
+  const [requestNotes, setRequestNotes] = useState("");
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [historyItem, setHistoryItem] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -316,6 +326,37 @@ export function SiteManagerSiteDetail() {
     setAddItemError("");
   };
 
+  const handleRequestStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile || !requestItemId) return;
+    setRequestSubmitting(true);
+    const { error } = await supabase.from("item_requests").insert({
+      item_id: requestItemId,
+      requested_by: profile.id,
+      quantity: requestQuantity,
+      notes: requestNotes || null,
+    });
+    setRequestSubmitting(false);
+    if (!error) {
+      setRequestSuccess(true);
+      setTimeout(() => {
+        setShowRequestModal(false);
+        setRequestSuccess(false);
+        setRequestItemId("");
+        setRequestQuantity(1);
+        setRequestNotes("");
+      }, 1500);
+    }
+  };
+
+  const openRequestModal = (itemId: string) => {
+    setRequestItemId(itemId);
+    setRequestQuantity(1);
+    setRequestNotes("");
+    setRequestSuccess(false);
+    setShowRequestModal(true);
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -508,7 +549,21 @@ export function SiteManagerSiteDetail() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => setHistoryItem({ id: siteItem.item_id, name: siteItem.item?.name || "" })}
+                          className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg transition"
+                          title="History"
+                        >
+                          <Clock className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openRequestModal(siteItem.item_id)}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                          title="Request More Stock"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
                         <button
                           onClick={() => {
                             setCurrentSiteItem(siteItem);
@@ -1069,6 +1124,90 @@ export function SiteManagerSiteDetail() {
           </div>
         </div>
       )}
+
+      {/* Request More Stock Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Request More Stock</h2>
+              <button
+                onClick={() => setShowRequestModal(false)}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {requestSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <p className="text-lg font-medium text-gray-900">Request Sent!</p>
+                <p className="text-sm text-gray-600 mt-1">Admin will review your request.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleRequestStock} className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">Requesting more stock for</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {capitalizeWords(allItems.find(i => i.id === requestItemId)?.name)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity to Add
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={requestQuantity}
+                    onChange={(e) => setRequestQuantity(parseInt(e.target.value, 10) || 1)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Note (optional)
+                  </label>
+                  <textarea
+                    value={requestNotes}
+                    onChange={(e) => setRequestNotes(e.target.value)}
+                    placeholder="e.g. We purchased 10 more for this site"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none resize-none"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestModal(false)}
+                    disabled={requestSubmitting}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={requestSubmitting}
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                  >
+                    {requestSubmitting ? "Submitting..." : "Submit Request"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      <EquipmentHistory
+        isOpen={!!historyItem}
+        onClose={() => setHistoryItem(null)}
+        itemId={historyItem?.id || ""}
+        itemName={historyItem?.name || ""}
+      />
     </Layout>
   );
 }

@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckSquare,
+  Clock,
   FileText,
   Minus,
   Package,
@@ -16,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { EquipmentHistory } from "../../components/EquipmentHistory";
 import { Layout } from "../../components/Layout";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../integrations/supabase/client";
@@ -49,6 +51,7 @@ export function AdminSiteDetail() {
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [addItemError, setAddItemError] = useState("");
+  const [historyItem, setHistoryItem] = useState<{ id: string; name: string } | null>(null);
 
   const loadData = async () => {
     if (!id) return;
@@ -559,7 +562,14 @@ export function AdminSiteDetail() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => setHistoryItem({ id: siteItem.item_id, name: siteItem.item?.name || "" })}
+                          className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg transition"
+                          title="History"
+                        >
+                          <Clock className="w-5 h-5" />
+                        </button>
                         <button
                           onClick={() => openTransferModal(siteItem)}
                           className="p-2 text-[#0db2ad] hover:bg-blue-100 rounded-lg transition"
@@ -1108,6 +1118,13 @@ export function AdminSiteDetail() {
           </div>
         </div>
       )}
+
+      <EquipmentHistory
+        isOpen={!!historyItem}
+        onClose={() => setHistoryItem(null)}
+        itemId={historyItem?.id || ""}
+        itemName={historyItem?.name || ""}
+      />
     </Layout>
   );
 }

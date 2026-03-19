@@ -1,5 +1,6 @@
 import {
   ArrowRightLeft,
+  Bell,
   Building,
   FileText,
   LayoutDashboard,
@@ -10,10 +11,11 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import logoImg from "@/assets/logo.webp";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../integrations/supabase/client";
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,6 +26,17 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+  useEffect(() => {
+    if (profile?.role === "admin") {
+      supabase
+        .from("item_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending")
+        .then(({ count }) => setPendingRequestCount(count || 0));
+    }
+  }, [profile?.role]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,6 +51,7 @@ export function Layout({ children }: LayoutProps) {
         { to: "/admin/product-database", icon: Package, label: "Product Database" },
         { to: "/admin/transfers", icon: ArrowRightLeft, label: "Transfers" },
         { to: "/admin/users", icon: Users, label: "Users" },
+        { to: "/admin/requests", icon: Bell, label: "Requests", badge: pendingRequestCount },
         { to: "/admin/trash", icon: Trash2, label: "Trash" },
       ];
     }
@@ -86,6 +100,11 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <link.icon className="w-4 h-4" />
                     <span className="font-medium">{link.label}</span>
+                    {link.badge ? (
+                      <span className="ml-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {link.badge}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
