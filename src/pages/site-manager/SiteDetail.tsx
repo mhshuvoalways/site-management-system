@@ -325,6 +325,37 @@ export function SiteManagerSiteDetail() {
     setAddItemError("");
   };
 
+  const handleRequestStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile || !requestItemId) return;
+    setRequestSubmitting(true);
+    const { error } = await supabase.from("item_requests").insert({
+      item_id: requestItemId,
+      requested_by: profile.id,
+      quantity: requestQuantity,
+      notes: requestNotes || null,
+    });
+    setRequestSubmitting(false);
+    if (!error) {
+      setRequestSuccess(true);
+      setTimeout(() => {
+        setShowRequestModal(false);
+        setRequestSuccess(false);
+        setRequestItemId("");
+        setRequestQuantity(1);
+        setRequestNotes("");
+      }, 1500);
+    }
+  };
+
+  const openRequestModal = (itemId: string) => {
+    setRequestItemId(itemId);
+    setRequestQuantity(1);
+    setRequestNotes("");
+    setRequestSuccess(false);
+    setShowRequestModal(true);
+  };
+
   if (loading) {
     return (
       <Layout>
