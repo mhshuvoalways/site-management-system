@@ -2,6 +2,7 @@ import {
   CheckSquare,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Edit2,
   Filter,
   Image as ImageIcon,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { EquipmentHistory } from "../../components/EquipmentHistory";
 import { Layout } from "../../components/Layout";
 import { supabase } from "../../integrations/supabase/client";
 import { Item } from "../../types";
