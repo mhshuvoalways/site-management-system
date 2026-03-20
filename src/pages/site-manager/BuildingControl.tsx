@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
+  Download,
   FileText,
   Image as ImageIcon,
   Plus,
