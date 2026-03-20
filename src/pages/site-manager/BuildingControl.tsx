@@ -706,6 +706,14 @@ export function SiteManagerBuildingControl() {
             {selectedReportIds.size} report{selectedReportIds.size > 1 ? "s" : ""} selected
           </span>
           <button
+            onClick={handleBulkDownloadReports}
+            disabled={isDownloading}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            <span>{isDownloading ? "Generating PDF..." : "Download PDF"}</span>
+          </button>
+          <button
             onClick={handleBulkDeleteReports}
             disabled={isBulkDeleting}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
