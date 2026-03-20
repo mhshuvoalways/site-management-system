@@ -62,6 +62,7 @@ export function BuildingControlPage() {
   const [viewingPhoto, setViewingPhoto] = useState<BuildingControlPhoto | null>(null);
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     loadData();
