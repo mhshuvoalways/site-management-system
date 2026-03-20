@@ -402,6 +402,45 @@ export function BuildingControlPage() {
     setIsBulkDeleting(false);
   };
 
+  const downloadPhoto = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
+  const handleBulkDownloadPhotos = async () => {
+    if (selectedPhotoIds.size === 0) return;
+    setIsDownloading(true);
+
+    const allPhotos: BuildingControlPhoto[] = [];
+    for (const report of reports) {
+      if (report.photos) {
+        for (const photo of report.photos) {
+          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
+        }
+      }
+    }
+
+    for (let i = 0; i < allPhotos.length; i++) {
+      const photo = allPhotos[i];
+      const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
+      await downloadPhoto(photo.photo_url, `building-control-photo-${i + 1}.${ext}`);
+      if (allPhotos.length > 1) await new Promise((r) => setTimeout(r, 500));
+    }
+
+    setIsDownloading(false);
+  };
+
   const totalSelected = selectedPhotoIds.size + selectedReportIds.size;
 
   if (loading) {
