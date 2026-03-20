@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
+  Download,
   Edit,
   FileText,
   Image as ImageIcon,
@@ -61,6 +62,7 @@ export function BuildingControlPage() {
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -400,6 +402,45 @@ export function BuildingControlPage() {
     setIsBulkDeleting(false);
   };
 
+  const downloadPhoto = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
+  const handleBulkDownloadPhotos = async () => {
+    if (selectedPhotoIds.size === 0) return;
+    setIsDownloading(true);
+
+    const allPhotos: BuildingControlPhoto[] = [];
+    for (const report of reports) {
+      if (report.photos) {
+        for (const photo of report.photos) {
+          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
+        }
+      }
+    }
+
+    for (let i = 0; i < allPhotos.length; i++) {
+      const photo = allPhotos[i];
+      const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
+      await downloadPhoto(photo.photo_url, `building-control-photo-${i + 1}.${ext}`);
+      if (allPhotos.length > 1) await new Promise((r) => setTimeout(r, 500));
+    }
+
+    setIsDownloading(false);
+  };
+
   const totalSelected = selectedPhotoIds.size + selectedReportIds.size;
 
   if (loading) {
@@ -586,14 +627,26 @@ export function BuildingControlPage() {
                                 <Square className="w-6 h-6 text-white drop-shadow-lg" />
                               )}
                             </button>
-                            <button
-                              onClick={() =>
-                                openDeletePhotoDialog(photo.id, photo.photo_url)
-                              }
-                              className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                            <div className="absolute top-2 right-2 flex space-x-1">
+                              <button
+                                onClick={() => {
+                                  const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
+                                  downloadPhoto(photo.photo_url, `photo.${ext}`);
+                                }}
+                                className="p-2 bg-blue-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-blue-700"
+                                title="Download Photo"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  openDeletePhotoDialog(photo.id, photo.photo_url)
+                                }
+                                className="p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                           {photo.notes && (
                             <div className="p-3">
@@ -800,12 +853,25 @@ export function BuildingControlPage() {
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => setViewingPhoto(null)}
         >
-          <button
-            onClick={() => setViewingPhoto(null)}
-            className="absolute top-4 right-4 p-2 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-30 transition"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="absolute top-4 right-4 flex space-x-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const ext = viewingPhoto.photo_url.split(".").pop()?.split("?")[0] || "jpg";
+                downloadPhoto(viewingPhoto.photo_url, `building-control-photo.${ext}`);
+              }}
+              className="p-2 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-30 transition"
+              title="Download"
+            >
+              <Download className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setViewingPhoto(null)}
+              className="p-2 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-30 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
           <div
             className="max-w-5xl max-h-[90vh] flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
@@ -832,6 +898,16 @@ export function BuildingControlPage() {
             {selectedPhotoIds.size > 0 && `${selectedPhotoIds.size} photo${selectedPhotoIds.size > 1 ? "s" : ""}`}
             {" "}selected
           </span>
+          {selectedPhotoIds.size > 0 && (
+            <button
+              onClick={handleBulkDownloadPhotos}
+              disabled={isDownloading}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isDownloading ? "Downloading..." : "Download Photos"}</span>
+            </button>
+          )}
           <button
             onClick={handleBulkDeleteAll}
             disabled={isBulkDeleting}
