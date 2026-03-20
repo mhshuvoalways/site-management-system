@@ -627,14 +627,26 @@ export function BuildingControlPage() {
                                 <Square className="w-6 h-6 text-white drop-shadow-lg" />
                               )}
                             </button>
-                            <button
-                              onClick={() =>
-                                openDeletePhotoDialog(photo.id, photo.photo_url)
-                              }
-                              className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                            <div className="absolute top-2 right-2 flex space-x-1">
+                              <button
+                                onClick={() => {
+                                  const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
+                                  downloadPhoto(photo.photo_url, `photo.${ext}`);
+                                }}
+                                className="p-2 bg-blue-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-blue-700"
+                                title="Download Photo"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  openDeletePhotoDialog(photo.id, photo.photo_url)
+                                }
+                                className="p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                           {photo.notes && (
                             <div className="p-3">
