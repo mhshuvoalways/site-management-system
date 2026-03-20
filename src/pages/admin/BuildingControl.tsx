@@ -885,6 +885,16 @@ export function BuildingControlPage() {
             {selectedPhotoIds.size > 0 && `${selectedPhotoIds.size} photo${selectedPhotoIds.size > 1 ? "s" : ""}`}
             {" "}selected
           </span>
+          {selectedPhotoIds.size > 0 && (
+            <button
+              onClick={handleBulkDownloadPhotos}
+              disabled={isDownloading}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isDownloading ? "Downloading..." : "Download Photos"}</span>
+            </button>
+          )}
           <button
             onClick={handleBulkDeleteAll}
             disabled={isBulkDeleting}
