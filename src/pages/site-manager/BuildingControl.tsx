@@ -507,6 +507,16 @@ export function SiteManagerBuildingControl() {
                       </div>
                     </div>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleDownloadReport(report)}
+                      disabled={isDownloading}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
+                      title="Download as PDF"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <p className="text-gray-900 whitespace-pre-wrap">
