@@ -484,6 +484,7 @@ export function BuildingControlPage() {
     setIsDownloading(false);
   };
 
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-12">
