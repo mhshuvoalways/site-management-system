@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
+  Download,
   FileText,
   Image as ImageIcon,
   Plus,
@@ -11,6 +12,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -47,6 +49,7 @@ export function SiteManagerBuildingControl() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -247,6 +250,145 @@ export function SiteManagerBuildingControl() {
     loadData();
   };
 
+
+  const loadImageAsDataUrl = (url: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  };
+
+  const generateReportPdf = async (reportsToDownload: BuildingControl[]) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
+
+    for (let ri = 0; ri < reportsToDownload.length; ri++) {
+      const report = reportsToDownload[ri];
+      if (ri > 0) doc.addPage();
+
+      let y = margin;
+
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("Building Control Report", margin, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100);
+      doc.text(site?.name || "", margin, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      const date = new Date(report.created_at ?? "").toLocaleDateString();
+      const author = report.created_by_profile?.full_name || "Unknown";
+      doc.text(`Date: ${date}  |  By: ${author}`, margin, y);
+      y += 12;
+
+      doc.setDrawColor(200);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text("Notes:", margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      const noteLines = doc.splitTextToSize(report.notes, contentWidth);
+      for (const line of noteLines) {
+        if (y > doc.internal.pageSize.getHeight() - 20) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += 5;
+      }
+      y += 6;
+
+      if (report.photos && report.photos.length > 0) {
+        doc.setFont("helvetica", "bold");
+        doc.text(`Photos (${report.photos.length}):`, margin, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+
+        for (const photo of report.photos) {
+          const dataUrl = await loadImageAsDataUrl(photo.photo_url);
+          if (!dataUrl) continue;
+
+          const imgProps = doc.getImageProperties(dataUrl);
+          const maxW = contentWidth;
+          const maxH = 100;
+          const ratio = Math.min(maxW / imgProps.width, maxH / imgProps.height);
+          const imgW = imgProps.width * ratio;
+          const imgH = imgProps.height * ratio;
+
+          if (y + imgH + 10 > doc.internal.pageSize.getHeight() - 20) {
+            doc.addPage();
+            y = margin;
+          }
+
+          doc.addImage(dataUrl, "JPEG", margin, y, imgW, imgH);
+          y += imgH + 3;
+
+          if (photo.notes) {
+            doc.setFontSize(9);
+            doc.setTextColor(80);
+            const photoNoteLines = doc.splitTextToSize(photo.notes, contentWidth);
+            for (const line of photoNoteLines) {
+              doc.text(line, margin, y);
+              y += 4;
+            }
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+          }
+          y += 6;
+        }
+      }
+    }
+
+    return doc;
+  };
+
+  const handleDownloadReport = async (report: BuildingControl) => {
+    setIsDownloading(true);
+    try {
+      const doc = await generateReportPdf([report]);
+      const date = new Date(report.created_at ?? "").toISOString().split("T")[0];
+      doc.save(`building-control-${date}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+      alert("Failed to generate PDF");
+    }
+    setIsDownloading(false);
+  };
+
+  const handleBulkDownloadReports = async () => {
+    if (selectedReportIds.size === 0) return;
+    setIsDownloading(true);
+    try {
+      const selectedReports = reports.filter(r => selectedReportIds.has(r.id));
+      const doc = await generateReportPdf(selectedReports);
+      doc.save(`building-control-reports-${selectedReports.length}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+      alert("Failed to generate PDF");
+    }
+    setIsDownloading(false);
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -364,6 +506,16 @@ export function SiteManagerBuildingControl() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleDownloadReport(report)}
+                      disabled={isDownloading}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
+                      title="Download as PDF"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -553,6 +705,14 @@ export function SiteManagerBuildingControl() {
           <span className="text-sm font-medium">
             {selectedReportIds.size} report{selectedReportIds.size > 1 ? "s" : ""} selected
           </span>
+          <button
+            onClick={handleBulkDownloadReports}
+            disabled={isDownloading}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            <span>{isDownloading ? "Generating PDF..." : "Download PDF"}</span>
+          </button>
           <button
             onClick={handleBulkDeleteReports}
             disabled={isBulkDeleting}
