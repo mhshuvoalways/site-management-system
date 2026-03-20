@@ -604,6 +604,14 @@ export function BuildingControlPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
+                      onClick={() => handleDownloadReport(report)}
+                      disabled={isDownloading}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
+                      title="Download as PDF"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                    <button
                       onClick={() => openEditReport(report)}
                       className="p-2 text-gray-600 hover:text-[#0db2ad] hover:bg-gray-100 rounded-lg transition"
                       title="Edit Report"
