@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
-  Download,
   FileText,
   Image as ImageIcon,
   Plus,
@@ -46,10 +45,8 @@ export function SiteManagerBuildingControl() {
     photoUrl: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -201,15 +198,6 @@ export function SiteManagerBuildingControl() {
     }
   };
 
-  const togglePhotoSelection = (photoId: string) => {
-    setSelectedPhotoIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(photoId)) next.delete(photoId);
-      else next.add(photoId);
-      return next;
-    });
-  };
-
   const toggleReportSelection = (reportId: string) => {
     setSelectedReportIds((prev) => {
       const next = new Set(prev);
@@ -219,16 +207,7 @@ export function SiteManagerBuildingControl() {
     });
   };
 
-  const allPhotoIds = reports.flatMap(r => (r.photos || []).map(p => p.id));
   const allReportIds = reports.map(r => r.id);
-
-  const selectAllPhotos = () => {
-    if (selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0) {
-      setSelectedPhotoIds(new Set());
-    } else {
-      setSelectedPhotoIds(new Set(allPhotoIds));
-    }
-  };
 
   const selectAllReports = () => {
     if (selectedReportIds.size === allReportIds.length && allReportIds.length > 0) {
@@ -236,39 +215,6 @@ export function SiteManagerBuildingControl() {
     } else {
       setSelectedReportIds(new Set(allReportIds));
     }
-  };
-
-  const handleBulkDeletePhotos = async () => {
-    if (selectedPhotoIds.size === 0) return;
-    setIsBulkDeleting(true);
-
-    const allPhotos: BuildingControlPhoto[] = [];
-    for (const report of reports) {
-      if (report.photos) {
-        for (const photo of report.photos) {
-          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
-        }
-      }
-    }
-
-    const fileNames = allPhotos
-      .map((p) => {
-        const parts = p.photo_url.split("/building-control-photos/");
-        return parts.length > 1 ? parts[1] : null;
-      })
-      .filter((name): name is string => name !== null);
-
-    if (fileNames.length > 0) {
-      await supabase.storage.from("building-control-photos").remove(fileNames);
-    }
-
-    for (const photoId of selectedPhotoIds) {
-      await supabase.from("building_control_photos").delete().eq("id", photoId);
-    }
-
-    setSelectedPhotoIds(new Set());
-    setIsBulkDeleting(false);
-    loadData();
   };
 
   const handleBulkDeleteReports = async () => {
@@ -300,54 +246,6 @@ export function SiteManagerBuildingControl() {
     setIsBulkDeleting(false);
     loadData();
   };
-
-  const handleBulkDeleteAll = async () => {
-    setIsBulkDeleting(true);
-    if (selectedReportIds.size > 0) await handleBulkDeleteReports();
-    if (selectedPhotoIds.size > 0) await handleBulkDeletePhotos();
-    setIsBulkDeleting(false);
-  };
-
-  const downloadPhoto = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch {
-      window.open(url, "_blank");
-    }
-  };
-
-  const handleBulkDownloadPhotos = async () => {
-    if (selectedPhotoIds.size === 0) return;
-    setIsDownloading(true);
-
-    const allPhotos: BuildingControlPhoto[] = [];
-    for (const report of reports) {
-      if (report.photos) {
-        for (const photo of report.photos) {
-          if (selectedPhotoIds.has(photo.id)) allPhotos.push(photo);
-        }
-      }
-    }
-
-    for (let i = 0; i < allPhotos.length; i++) {
-      const photo = allPhotos[i];
-      const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
-      await downloadPhoto(photo.photo_url, `building-control-photo-${i + 1}.${ext}`);
-      if (allPhotos.length > 1) await new Promise((r) => setTimeout(r, 500));
-    }
-
-    setIsDownloading(false);
-  };
-
-  const totalSelected = selectedPhotoIds.size + selectedReportIds.size;
 
   if (loading) {
     return (
@@ -407,19 +305,6 @@ export function SiteManagerBuildingControl() {
               )}
               <span>All Reports ({reports.length})</span>
             </button>
-            {allPhotoIds.length > 0 && (
-              <button
-                onClick={selectAllPhotos}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-              >
-                {selectedPhotoIds.size === allPhotoIds.length && allPhotoIds.length > 0 ? (
-                  <CheckSquare className="w-4 h-4 text-[#0db2ad]" />
-                ) : (
-                  <Square className="w-4 h-4 text-gray-400" />
-                )}
-                <span>All Photos ({allPhotoIds.length})</span>
-              </button>
-            )}
           </div>
         )}
 
@@ -497,7 +382,7 @@ export function SiteManagerBuildingControl() {
                       {report.photos.map((photo: BuildingControlPhoto) => (
                         <div
                           key={photo.id}
-                          className={`bg-gray-50 rounded-lg overflow-hidden border group ${selectedPhotoIds.has(photo.id) ? "border-[#0db2ad] ring-2 ring-[#0db2ad]" : "border-gray-200"}`}
+                          className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group"
                         >
                           <div className="relative">
                             <img
@@ -505,28 +390,7 @@ export function SiteManagerBuildingControl() {
                               alt="Building control"
                               className="w-full h-48 object-cover"
                             />
-                            <button
-                              type="button"
-                              onClick={() => togglePhotoSelection(photo.id)}
-                              className="absolute top-2 left-2 p-1 rounded transition"
-                            >
-                              {selectedPhotoIds.has(photo.id) ? (
-                                <CheckSquare className="w-6 h-6 text-[#0db2ad]" />
-                              ) : (
-                                <Square className="w-6 h-6 text-white drop-shadow-lg" />
-                              )}
-                            </button>
-                            <div className="absolute top-2 right-2 flex space-x-1">
-                              <button
-                                onClick={() => {
-                                  const ext = photo.photo_url.split(".").pop()?.split("?")[0] || "jpg";
-                                  downloadPhoto(photo.photo_url, `photo.${ext}`);
-                                }}
-                                className="p-2 bg-blue-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-blue-700"
-                                title="Download Photo"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
+                            <div className="absolute top-2 right-2">
                               <button
                                 onClick={() =>
                                   openDeleteDialog(photo.id, photo.photo_url)
@@ -684,26 +548,13 @@ export function SiteManagerBuildingControl() {
         isProcessing={isDeleting}
       />
 
-      {totalSelected > 0 && (
+      {selectedReportIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
           <span className="text-sm font-medium">
-            {selectedReportIds.size > 0 && `${selectedReportIds.size} report${selectedReportIds.size > 1 ? "s" : ""}`}
-            {selectedReportIds.size > 0 && selectedPhotoIds.size > 0 && ", "}
-            {selectedPhotoIds.size > 0 && `${selectedPhotoIds.size} photo${selectedPhotoIds.size > 1 ? "s" : ""}`}
-            {" "}selected
+            {selectedReportIds.size} report{selectedReportIds.size > 1 ? "s" : ""} selected
           </span>
-          {selectedPhotoIds.size > 0 && (
-            <button
-              onClick={handleBulkDownloadPhotos}
-              disabled={isDownloading}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              <span>{isDownloading ? "Downloading..." : "Download Photos"}</span>
-            </button>
-          )}
           <button
-            onClick={handleBulkDeleteAll}
+            onClick={handleBulkDeleteReports}
             disabled={isBulkDeleting}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
           >
@@ -711,7 +562,7 @@ export function SiteManagerBuildingControl() {
             <span>{isBulkDeleting ? "Deleting..." : "Delete Selected"}</span>
           </button>
           <button
-            onClick={() => { setSelectedPhotoIds(new Set()); setSelectedReportIds(new Set()); }}
+            onClick={() => setSelectedReportIds(new Set())}
             className="px-3 py-2 text-gray-300 hover:text-white transition"
           >
             Cancel
