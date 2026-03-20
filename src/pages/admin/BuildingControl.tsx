@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
+  Download,
   Edit,
   FileText,
   Image as ImageIcon,
@@ -12,6 +13,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
