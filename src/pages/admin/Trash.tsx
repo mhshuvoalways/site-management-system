@@ -372,10 +372,10 @@ export function AdminTrash() {
 
       <ConfirmDialog
         isOpen={emptyDialog}
-        title="Empty All Trash?"
-        message={`All ${totalCount} trashed item${totalCount !== 1 ? "s" : ""} will be permanently deleted. This cannot be undone.`}
-        confirmLabel="Empty Trash"
-        onConfirm={handleEmptyAll}
+        title={`Empty ${getActiveTabLabel()} Trash?`}
+        message={`All ${getActiveTabCount()} trashed ${getActiveTabLabel().toLowerCase()} will be permanently deleted. This cannot be undone.`}
+        confirmLabel={`Empty ${getActiveTabLabel()} Trash`}
+        onConfirm={handleEmptyTab}
         onCancel={() => setEmptyDialog(false)}
         isProcessing={processing}
       />

@@ -470,10 +470,10 @@ export function SiteManagerSiteDetail() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
-                    Building Control
+                    Site Photos
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Manage reports and inspections
+                    Manage photos and reports
                   </p>
                 </div>
               </div>
