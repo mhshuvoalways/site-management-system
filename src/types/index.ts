@@ -60,7 +60,10 @@ export interface BuildingControl {
   images: unknown;
   created_by: string;
   created_at: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
   created_by_profile?: Partial<Profile>;
+  updated_by_profile?: Partial<Profile>;
   photos?: BuildingControlPhoto[];
 }
 
@@ -71,6 +74,10 @@ export interface BuildingControlPhoto {
   notes: string | null;
   created_at: string | null;
   created_by: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_address?: string | null;
+  taken_at?: string | null;
   created_by_profile?: Partial<Profile>;
 }
 

@@ -22,6 +22,8 @@ export type Database = {
           images: Json | null
           notes: string
           site_id: string
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -30,6 +32,8 @@ export type Database = {
           images?: Json | null
           notes: string
           site_id: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -38,6 +42,8 @@ export type Database = {
           images?: Json | null
           notes?: string
           site_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -62,24 +68,36 @@ export type Database = {
           created_at: string | null
           created_by: string
           id: string
+          latitude: number | null
+          location_address: string | null
+          longitude: number | null
           notes: string | null
           photo_url: string
+          taken_at: string | null
         }
         Insert: {
           building_control_id: string
           created_at?: string | null
           created_by: string
           id?: string
+          latitude?: number | null
+          location_address?: string | null
+          longitude?: number | null
           notes?: string | null
           photo_url: string
+          taken_at?: string | null
         }
         Update: {
           building_control_id?: string
           created_at?: string | null
           created_by?: string
           id?: string
+          latitude?: number | null
+          location_address?: string | null
+          longitude?: number | null
           notes?: string | null
           photo_url?: string
+          taken_at?: string | null
         }
         Relationships: [
           {
