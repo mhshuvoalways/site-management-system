@@ -1,0 +1,1 @@
+ALTER TABLE public.building_control ADD CONSTRAINT building_control_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.profiles(id);
