@@ -79,6 +79,15 @@ export function BuildingControlPage() {
     loadData();
   }, [id]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showDownloadMenu) setShowDownloadMenu(null);
+      if (showBulkDownloadMenu) setShowBulkDownloadMenu(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [showDownloadMenu, showBulkDownloadMenu]);
+
   const loadData = async () => {
     if (!id) return;
 
