@@ -67,6 +67,15 @@ export function SiteManagerBuildingControl() {
 
   useEffect(() => { loadData(); }, [id]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showDownloadMenu) setShowDownloadMenu(null);
+      if (showBulkDownloadMenu) setShowBulkDownloadMenu(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [showDownloadMenu, showBulkDownloadMenu]);
+
   const loadData = async () => {
     if (!id) return;
     const [siteData, reportsData] = await Promise.all([
@@ -475,7 +484,7 @@ export function SiteManagerBuildingControl() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="relative">
-                      <button onClick={() => setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id)} disabled={isDownloading} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50" title="Download">
+                      <button onClick={(e) => { e.stopPropagation(); setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id); }} disabled={isDownloading} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50" title="Download">
                         <Download className="w-5 h-5" />
                       </button>
                       {showDownloadMenu === report.id && (
@@ -659,7 +668,7 @@ export function SiteManagerBuildingControl() {
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
           <span className="text-sm font-medium">{selectedReportIds.size} report{selectedReportIds.size > 1 ? "s" : ""} selected</span>
           <div className="relative">
-            <button onClick={() => setShowBulkDownloadMenu(!showBulkDownloadMenu)} disabled={isDownloading} className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+            <button onClick={(e) => { e.stopPropagation(); setShowBulkDownloadMenu(!showBulkDownloadMenu); }} disabled={isDownloading} className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
               <Download className="w-4 h-4" /><span>{isDownloading ? "Downloading..." : "Download"}</span>
             </button>
             {showBulkDownloadMenu && (

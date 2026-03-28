@@ -79,6 +79,15 @@ export function BuildingControlPage() {
     loadData();
   }, [id]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showDownloadMenu) setShowDownloadMenu(null);
+      if (showBulkDownloadMenu) setShowBulkDownloadMenu(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [showDownloadMenu, showBulkDownloadMenu]);
+
   const loadData = async () => {
     if (!id) return;
 
@@ -768,7 +777,7 @@ export function BuildingControlPage() {
                   <div className="flex items-center space-x-2">
                     <div className="relative">
                       <button
-                        onClick={() => setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id)}
+                        onClick={(e) => { e.stopPropagation(); setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id); }}
                         disabled={isDownloading}
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
                         title="Download"
@@ -1176,7 +1185,7 @@ export function BuildingControlPage() {
           </span>
           <div className="relative">
             <button
-              onClick={() => setShowBulkDownloadMenu(!showBulkDownloadMenu)}
+              onClick={(e) => { e.stopPropagation(); setShowBulkDownloadMenu(!showBulkDownloadMenu); }}
               disabled={isDownloading}
               className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
