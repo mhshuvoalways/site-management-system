@@ -587,13 +587,20 @@ export function BuildingControlPage() {
       } else {
         if (report.photos && report.photos.length > 0) {
           for (const photo of report.photos) {
-            const link = document.createElement("a");
-            link.href = photo.photo_url;
-            link.download = `photo-${photo.id}.jpg`;
-            link.target = "_blank";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            try {
+              const response = await fetch(photo.photo_url);
+              const blob = await response.blob();
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `photo-${photo.id}.jpg`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            } catch (e) {
+              console.error("Failed to download photo:", e);
+            }
           }
         }
       }
@@ -617,13 +624,20 @@ export function BuildingControlPage() {
         for (const report of selectedReports) {
           if (report.photos) {
             for (const photo of report.photos) {
-              const link = document.createElement("a");
-              link.href = photo.photo_url;
-              link.download = `photo-${photo.id}.jpg`;
-              link.target = "_blank";
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
+              try {
+                const response = await fetch(photo.photo_url);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `photo-${photo.id}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              } catch (e) {
+                console.error("Failed to download photo:", e);
+              }
             }
           }
         }
