@@ -235,13 +235,13 @@ export function AdminSites() {
             {filteredSites.filter(siteHasMatchingItems).map((site) => (
               <div
                 key={site.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group flex flex-col"
               >
-                <div className="p-6">
+                <div className="p-6 flex-1">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="bg-gradient-to-br from-[#0db2ad] to-[#567fca] p-3 rounded-lg">
+                    <Link to={`/admin/sites/${site.id}`} className="bg-gradient-to-br from-[#0db2ad] to-[#567fca] p-3 rounded-lg hover:shadow-lg transition cursor-pointer">
                       <Building className="w-6 h-6 text-white" />
-                    </div>
+                    </Link>
                     <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition">
                       <button
                         onClick={() => openEditModal(site)}
