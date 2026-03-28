@@ -141,7 +141,7 @@ export function SiteManagerSitesList() {
                   <div className="flex items-start justify-between mb-4">
                     <Link to={`/site-manager/sites/${site.id}`} className="bg-gradient-to-br from-[#0db2ad] to-[#567fca] p-3 rounded-lg hover:shadow-lg transition cursor-pointer">
                       <Building className="w-6 h-6 text-white" />
-                    </div>
+                    </Link>
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                       Active
                     </span>
