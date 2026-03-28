@@ -86,7 +86,7 @@ export function BuildingControlPage() {
       supabase.from("sites").select("*").eq("id", id).single(),
       supabase
         .from("building_control")
-        .select("*, created_by_profile:profiles!building_control_created_by_fkey(full_name), updated_by_profile:profiles!building_control_updated_by_fkey(full_name)")
+        .select("*, created_by_profile:profiles!building_control_created_by_fkey(full_name), updated_by_profile:profiles!building_control_updated_by_fkey!left(full_name)")
         .eq("site_id", id)
         .order("created_at", { ascending: false }),
     ]);
