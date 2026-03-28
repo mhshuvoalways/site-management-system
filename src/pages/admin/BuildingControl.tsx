@@ -1185,7 +1185,7 @@ export function BuildingControlPage() {
           </span>
           <div className="relative">
             <button
-              onClick={() => setShowBulkDownloadMenu(!showBulkDownloadMenu)}
+              onClick={(e) => { e.stopPropagation(); setShowBulkDownloadMenu(!showBulkDownloadMenu); }}
               disabled={isDownloading}
               className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
