@@ -777,7 +777,7 @@ export function BuildingControlPage() {
                   <div className="flex items-center space-x-2">
                     <div className="relative">
                       <button
-                        onClick={() => setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id)}
+                        onClick={(e) => { e.stopPropagation(); setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id); }}
                         disabled={isDownloading}
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
                         title="Download"
