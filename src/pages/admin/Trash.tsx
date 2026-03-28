@@ -117,44 +117,49 @@ export function AdminTrash() {
     setProcessing(false);
   };
 
-  const handleEmptyAll = async () => {
+  const getActiveTabLabel = () => {
+    const tab = tabs.find(t => t.key === activeTab);
+    return tab?.label || "Items";
+  };
+
+  const getActiveTabCount = () => {
+    const tab = tabs.find(t => t.key === activeTab);
+    return tab?.count || 0;
+  };
+
+  const handleEmptyTab = async () => {
     setProcessing(true);
 
-    // Delete sites and items permanently
-    const siteIds = trashedSites.map((s) => s.id);
-    const itemIds = trashedItems.map((i) => i.id);
-    const siteItemIds = trashedSiteItems.map((si) => si.id);
-    const userIds = trashedUsers.map((u) => u.id);
-
-    if (siteIds.length > 0) {
-      await supabase.from("sites").delete().in("id", siteIds);
-    }
-    if (itemIds.length > 0) {
-      await supabase.from("items").delete().in("id", itemIds);
-    }
-    if (siteItemIds.length > 0) {
-      await supabase.from("site_items").delete().in("id", siteItemIds);
-    }
-
-    // Delete users via edge function
-    if (userIds.length > 0) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
-          for (const userId of userIds) {
-            await fetch(apiUrl, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${session.access_token}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ userId }),
-            });
+    if (activeTab === "sites") {
+      const ids = trashedSites.map((s) => s.id);
+      if (ids.length > 0) await supabase.from("sites").delete().in("id", ids);
+    } else if (activeTab === "items") {
+      const ids = trashedItems.map((i) => i.id);
+      if (ids.length > 0) await supabase.from("items").delete().in("id", ids);
+    } else if (activeTab === "site_items") {
+      const ids = trashedSiteItems.map((si) => si.id);
+      if (ids.length > 0) await supabase.from("site_items").delete().in("id", ids);
+    } else if (activeTab === "users") {
+      const userIds = trashedUsers.map((u) => u.id);
+      if (userIds.length > 0) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
+            for (const userId of userIds) {
+              await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId }),
+              });
+            }
           }
+        } catch (e) {
+          console.error("Failed to permanently delete users:", e);
         }
-      } catch (e) {
-        console.error("Failed to permanently delete users:", e);
       }
     }
 
@@ -202,14 +207,14 @@ export function AdminTrash() {
                 : `${totalCount} item${totalCount !== 1 ? "s" : ""} in trash`}
             </p>
           </div>
-          {totalCount > 0 && (
+          {getActiveTabCount() > 0 && (
             <button
               onClick={() => setEmptyDialog(true)}
               disabled={processing}
               className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
             >
               <Trash2 className="w-5 h-5" />
-              <span>Empty All Trash</span>
+              <span>Empty {getActiveTabLabel()} Trash</span>
             </button>
           )}
         </div>
@@ -367,10 +372,10 @@ export function AdminTrash() {
 
       <ConfirmDialog
         isOpen={emptyDialog}
-        title="Empty All Trash?"
-        message={`All ${totalCount} trashed item${totalCount !== 1 ? "s" : ""} will be permanently deleted. This cannot be undone.`}
-        confirmLabel="Empty Trash"
-        onConfirm={handleEmptyAll}
+        title={`Empty ${getActiveTabLabel()} Trash?`}
+        message={`All ${getActiveTabCount()} trashed ${getActiveTabLabel().toLowerCase()} will be permanently deleted. This cannot be undone.`}
+        confirmLabel={`Empty ${getActiveTabLabel()} Trash`}
+        onConfirm={handleEmptyTab}
         onCancel={() => setEmptyDialog(false)}
         isProcessing={processing}
       />

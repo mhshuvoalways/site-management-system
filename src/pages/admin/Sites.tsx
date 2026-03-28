@@ -317,14 +317,12 @@ export function AdminSites() {
                     )}
                   </div>
                 </div>
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                  <Link
-                    to={`/admin/sites/${site.id}`}
-                    className="text-[#0db2ad] hover:text-[#567fca] font-medium text-sm transition"
-                  >
-                    View Details →
-                  </Link>
-                </div>
+                <Link
+                  to={`/admin/sites/${site.id}`}
+                  className="block px-6 py-4 bg-gray-50 border-t border-gray-100 text-center text-[#0db2ad] hover:text-white hover:bg-gradient-to-r hover:from-[#0db2ad] hover:to-[#567fca] font-medium text-sm transition rounded-b-xl"
+                >
+                  View Details →
+                </Link>
               </div>
             ))}
           </div>
