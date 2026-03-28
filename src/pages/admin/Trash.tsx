@@ -207,14 +207,14 @@ export function AdminTrash() {
                 : `${totalCount} item${totalCount !== 1 ? "s" : ""} in trash`}
             </p>
           </div>
-          {totalCount > 0 && (
+          {getActiveTabCount() > 0 && (
             <button
               onClick={() => setEmptyDialog(true)}
               disabled={processing}
               className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
             >
               <Trash2 className="w-5 h-5" />
-              <span>Empty All Trash</span>
+              <span>Empty {getActiveTabLabel()} Trash</span>
             </button>
           )}
         </div>
