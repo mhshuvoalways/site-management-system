@@ -668,7 +668,7 @@ export function SiteManagerBuildingControl() {
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-4 z-50">
           <span className="text-sm font-medium">{selectedReportIds.size} report{selectedReportIds.size > 1 ? "s" : ""} selected</span>
           <div className="relative">
-            <button onClick={() => setShowBulkDownloadMenu(!showBulkDownloadMenu)} disabled={isDownloading} className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+            <button onClick={(e) => { e.stopPropagation(); setShowBulkDownloadMenu(!showBulkDownloadMenu); }} disabled={isDownloading} className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
               <Download className="w-4 h-4" /><span>{isDownloading ? "Downloading..." : "Download"}</span>
             </button>
             {showBulkDownloadMenu && (
