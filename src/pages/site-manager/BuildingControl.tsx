@@ -605,7 +605,7 @@ export function SiteManagerBuildingControl() {
                         <div className="relative">
                           <img src={photo.photo_url} alt="Existing" className="w-full h-48 object-cover" />
                           <button type="button" onClick={() => handleDeleteExistingPhoto(photo.id, photo.photo_url)} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"><X className="w-4 h-4" /></button>
-                          {photo.location_address && <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]"><MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address}</span></div>}
+                          {(photo.location_address || photo.latitude) && <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]"><MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span></div>}
                         </div>
                         {photo.notes && <div className="p-3"><p className="text-sm text-gray-700">{photo.notes}</p></div>}
                       </div>
