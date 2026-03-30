@@ -1112,6 +1112,7 @@ export function BuildingControlPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

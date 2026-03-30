@@ -644,6 +644,7 @@ export function SiteManagerBuildingControl() {
                 <button type="submit" disabled={isUpdating} className="flex-1 px-4 py-2 bg-gradient-to-r from-[#0db2ad] to-[#567fca] text-white rounded-lg hover:shadow-lg transition disabled:opacity-50">{isUpdating ? "Saving..." : "Save Changes"}</button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
