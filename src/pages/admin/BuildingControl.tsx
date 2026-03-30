@@ -1166,10 +1166,10 @@ export function BuildingControlPage() {
                   <p className="text-white">{viewingPhoto.notes}</p>
                 </div>
               )}
-              {viewingPhoto.location_address && (
+              {(viewingPhoto.location_address || viewingPhoto.latitude) && (
                 <div className="flex items-center justify-center space-x-2 text-white text-sm opacity-80">
                   <MapPin className="w-4 h-4" />
-                  <span>{viewingPhoto.location_address}</span>
+                  <span>{viewingPhoto.location_address || `${viewingPhoto.latitude?.toFixed(6)}, ${viewingPhoto.longitude?.toFixed(6)}`}</span>
                 </div>
               )}
               {viewingPhoto.taken_at && (
