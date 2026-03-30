@@ -661,7 +661,7 @@ export function SiteManagerBuildingControl() {
             <img src={viewingPhoto.photo_url} alt="Site photo" className="max-w-full max-h-[80vh] object-contain rounded-lg" />
             <div className="mt-4 space-y-2 text-center">
               {viewingPhoto.notes && <div className="bg-white bg-opacity-10 rounded-lg px-4 py-2"><p className="text-white">{viewingPhoto.notes}</p></div>}
-              {viewingPhoto.location_address && <div className="flex items-center justify-center space-x-2 text-white text-sm opacity-80"><MapPin className="w-4 h-4" /><span>{viewingPhoto.location_address}</span></div>}
+              {(viewingPhoto.location_address || viewingPhoto.latitude) && <div className="flex items-center justify-center space-x-2 text-white text-sm opacity-80"><MapPin className="w-4 h-4" /><span>{viewingPhoto.location_address || `${viewingPhoto.latitude?.toFixed(6)}, ${viewingPhoto.longitude?.toFixed(6)}`}</span></div>}
               {viewingPhoto.taken_at && <p className="text-white text-sm opacity-60">Taken: {new Date(viewingPhoto.taken_at).toLocaleString()}</p>}
             </div>
           </div>
