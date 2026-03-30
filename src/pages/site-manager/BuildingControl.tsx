@@ -510,18 +510,22 @@ export function SiteManagerBuildingControl() {
                             <div className="absolute top-2 right-2">
                               <button onClick={() => openDeleteDialog(photo.id, photo.photo_url)} className="p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"><X className="w-4 h-4" /></button>
                             </div>
-                            {photo.location_address && (
+                            {(photo.location_address || photo.latitude) && (
                               <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]">
-                                <MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address}</span>
+                                <MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span>
                               </div>
                             )}
                           </div>
-                          {(photo.notes || photo.taken_at) && (
-                            <div className="p-3 space-y-1">
-                              {photo.notes && <p className="text-sm text-gray-700">{photo.notes}</p>}
-                              {photo.taken_at && <p className="text-xs text-gray-400">Taken: {new Date(photo.taken_at).toLocaleString()}</p>}
-                            </div>
-                          )}
+                          <div className="p-3 space-y-1">
+                            {photo.notes && <p className="text-sm text-gray-700">{photo.notes}</p>}
+                            {photo.taken_at && <p className="text-xs text-gray-400">Taken: {new Date(photo.taken_at).toLocaleString()}</p>}
+                            {(photo.location_address || photo.latitude) && (
+                              <p className="text-xs text-gray-400 flex items-center space-x-1">
+                                <MapPin className="w-3 h-3" />
+                                <span>{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
