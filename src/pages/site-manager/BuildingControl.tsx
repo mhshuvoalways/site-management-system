@@ -510,22 +510,18 @@ export function SiteManagerBuildingControl() {
                             <div className="absolute top-2 right-2">
                               <button onClick={() => openDeleteDialog(photo.id, photo.photo_url)} className="p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-700"><X className="w-4 h-4" /></button>
                             </div>
-                            {(photo.location_address || photo.latitude) && (
+                            {photo.location_address && (
                               <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]">
-                                <MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span>
+                                <MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address}</span>
                               </div>
                             )}
                           </div>
-                          <div className="p-3 space-y-1">
-                            {photo.notes && <p className="text-sm text-gray-700">{photo.notes}</p>}
-                            {photo.taken_at && <p className="text-xs text-gray-400">Taken: {new Date(photo.taken_at).toLocaleString()}</p>}
-                            {(photo.location_address || photo.latitude) && (
-                              <p className="text-xs text-gray-400 flex items-center space-x-1">
-                                <MapPin className="w-3 h-3" />
-                                <span>{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span>
-                              </p>
-                            )}
-                          </div>
+                          {(photo.notes || photo.taken_at) && (
+                            <div className="p-3 space-y-1">
+                              {photo.notes && <p className="text-sm text-gray-700">{photo.notes}</p>}
+                              {photo.taken_at && <p className="text-xs text-gray-400">Taken: {new Date(photo.taken_at).toLocaleString()}</p>}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -605,7 +601,7 @@ export function SiteManagerBuildingControl() {
                         <div className="relative">
                           <img src={photo.photo_url} alt="Existing" className="w-full h-48 object-cover" />
                           <button type="button" onClick={() => handleDeleteExistingPhoto(photo.id, photo.photo_url)} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"><X className="w-4 h-4" /></button>
-                          {(photo.location_address || photo.latitude) && <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]"><MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address || `${photo.latitude?.toFixed(6)}, ${photo.longitude?.toFixed(6)}`}</span></div>}
+                          {photo.location_address && <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center space-x-1 max-w-[80%]"><MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{photo.location_address}</span></div>}
                         </div>
                         {photo.notes && <div className="p-3"><p className="text-sm text-gray-700">{photo.notes}</p></div>}
                       </div>
@@ -661,7 +657,7 @@ export function SiteManagerBuildingControl() {
             <img src={viewingPhoto.photo_url} alt="Site photo" className="max-w-full max-h-[80vh] object-contain rounded-lg" />
             <div className="mt-4 space-y-2 text-center">
               {viewingPhoto.notes && <div className="bg-white bg-opacity-10 rounded-lg px-4 py-2"><p className="text-white">{viewingPhoto.notes}</p></div>}
-              {(viewingPhoto.location_address || viewingPhoto.latitude) && <div className="flex items-center justify-center space-x-2 text-white text-sm opacity-80"><MapPin className="w-4 h-4" /><span>{viewingPhoto.location_address || `${viewingPhoto.latitude?.toFixed(6)}, ${viewingPhoto.longitude?.toFixed(6)}`}</span></div>}
+              {viewingPhoto.location_address && <div className="flex items-center justify-center space-x-2 text-white text-sm opacity-80"><MapPin className="w-4 h-4" /><span>{viewingPhoto.location_address}</span></div>}
               {viewingPhoto.taken_at && <p className="text-white text-sm opacity-60">Taken: {new Date(viewingPhoto.taken_at).toLocaleString()}</p>}
             </div>
           </div>
