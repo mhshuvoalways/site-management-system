@@ -349,7 +349,7 @@ export function BuildingControlPage() {
 
     const { error } = await supabase
       .from("building_control")
-      .update({ notes: editNotes, updated_at: new Date().toISOString(), updated_by: profile.id })
+      .update({ title: editTitle || "Site Photos Entry", notes: editNotes || "", updated_at: new Date().toISOString(), updated_by: profile.id })
       .eq("id", editingReport.id);
 
     if (error) {
