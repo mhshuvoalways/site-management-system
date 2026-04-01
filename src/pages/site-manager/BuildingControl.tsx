@@ -541,8 +541,12 @@ export function SiteManagerBuildingControl() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">New Site Photos Report</h2>
             <form onSubmit={handleCreateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
-                <textarea value={newReport.notes} onChange={(e) => setNewReport({ ...newReport, notes: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={6} placeholder="Enter notes, observations, and findings..." required />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input type="text" value={newReport.title} onChange={(e) => setNewReport({ ...newReport, title: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" placeholder="e.g. Week 2, Foundation Check..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
+                <textarea value={newReport.notes} onChange={(e) => setNewReport({ ...newReport, notes: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={4} placeholder="Enter notes, observations, and findings..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Add Photos</label>
