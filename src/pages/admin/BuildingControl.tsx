@@ -41,7 +41,7 @@ export function BuildingControlPage() {
   const [reports, setReports] = useState<BuildingControl[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [newReport, setNewReport] = useState({ notes: "" });
+  const [newReport, setNewReport] = useState({ title: "Site Photos Entry", notes: "" });
   const [photoUploads, setPhotoUploads] = useState<PhotoUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletePhotoDialog, setDeletePhotoDialog] = useState<{
