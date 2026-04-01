@@ -315,6 +315,7 @@ export function BuildingControlPage() {
 
   const openEditReport = (report: BuildingControl) => {
     setEditingReport(report);
+    setEditTitle(report.title || "Site Photos Entry");
     setEditNotes(report.notes);
     setEditPhotoUploads([]);
   };
