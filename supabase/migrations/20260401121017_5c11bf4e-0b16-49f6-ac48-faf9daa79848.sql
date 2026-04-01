@@ -1,0 +1,1 @@
+ALTER TABLE public.building_control ADD COLUMN title text DEFAULT 'Site Photos Entry';

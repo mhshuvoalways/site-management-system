@@ -41,7 +41,7 @@ export function BuildingControlPage() {
   const [reports, setReports] = useState<BuildingControl[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [newReport, setNewReport] = useState({ notes: "" });
+  const [newReport, setNewReport] = useState({ title: "Site Photos Entry", notes: "" });
   const [photoUploads, setPhotoUploads] = useState<PhotoUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletePhotoDialog, setDeletePhotoDialog] = useState<{
@@ -55,6 +55,7 @@ export function BuildingControlPage() {
   });
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
   const [editingReport, setEditingReport] = useState<BuildingControl | null>(null);
+  const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editPhotoUploads, setEditPhotoUploads] = useState<PhotoUpload[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -257,7 +258,8 @@ export function BuildingControlPage() {
       .from("building_control")
       .insert({
         site_id: id,
-        notes: newReport.notes,
+        title: newReport.title || "Site Photos Entry",
+        notes: newReport.notes || "",
         created_by: profile.id,
       })
       .select()
@@ -273,7 +275,7 @@ export function BuildingControlPage() {
       await uploadPhotosForReport(reportData.id, photoUploads);
     }
 
-    setNewReport({ notes: "" });
+    setNewReport({ title: "Site Photos Entry", notes: "" });
     setPhotoUploads([]);
     setShowNewModal(false);
     setUploading(false);
@@ -313,12 +315,14 @@ export function BuildingControlPage() {
 
   const openEditReport = (report: BuildingControl) => {
     setEditingReport(report);
+    setEditTitle(report.title || "Site Photos Entry");
     setEditNotes(report.notes);
     setEditPhotoUploads([]);
   };
 
   const closeEditReport = () => {
     setEditingReport(null);
+    setEditTitle("");
     setEditNotes("");
     editPhotoUploads.forEach((u) => URL.revokeObjectURL(u.preview));
     setEditPhotoUploads([]);
@@ -345,7 +349,7 @@ export function BuildingControlPage() {
 
     const { error } = await supabase
       .from("building_control")
-      .update({ notes: editNotes, updated_at: new Date().toISOString(), updated_by: profile.id })
+      .update({ title: editTitle || "Site Photos Entry", notes: editNotes || "", updated_at: new Date().toISOString(), updated_by: profile.id })
       .eq("id", editingReport.id);
 
     if (error) {
@@ -758,7 +762,7 @@ export function BuildingControlPage() {
                       <FileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Site Photos Entry</h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{report.title || "Site Photos Entry"}</h3>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4" />
@@ -880,14 +884,23 @@ export function BuildingControlPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">New Site Photos Report</h2>
             <form onSubmit={handleCreateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input
+                  type="text"
+                  value={newReport.title}
+                  onChange={(e) => setNewReport({ ...newReport, title: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                  placeholder="e.g. Week 2, Foundation Check..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
                 <textarea
                   value={newReport.notes}
                   onChange={(e) => setNewReport({ ...newReport, notes: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  rows={6}
+                  rows={4}
                   placeholder="Enter notes, observations, and findings..."
-                  required
                 />
               </div>
 
@@ -992,14 +1005,23 @@ export function BuildingControlPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Site Photos Report</h2>
             <form onSubmit={handleUpdateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
+                  placeholder="e.g. Week 2, Foundation Check..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
                 <textarea
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none"
-                  rows={6}
+                  rows={4}
                   placeholder="Enter notes..."
-                  required
                 />
               </div>
 

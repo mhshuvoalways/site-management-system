@@ -41,7 +41,7 @@ export function SiteManagerBuildingControl() {
   const [reports, setReports] = useState<BuildingControl[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [newReport, setNewReport] = useState({ notes: "" });
+  const [newReport, setNewReport] = useState({ title: "Site Photos Entry", notes: "" });
   const [photoUploads, setPhotoUploads] = useState<PhotoUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; photoId: string; photoUrl: string }>({
@@ -49,6 +49,7 @@ export function SiteManagerBuildingControl() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingReport, setEditingReport] = useState<BuildingControl | null>(null);
+  const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editPhotoUploads, setEditPhotoUploads] = useState<PhotoUpload[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -193,11 +194,11 @@ export function SiteManagerBuildingControl() {
     if (!id || !profile) return;
     setUploading(true);
     const { data: reportData, error: reportError } = await supabase
-      .from("building_control").insert({ site_id: id, notes: newReport.notes, created_by: profile.id })
+      .from("building_control").insert({ site_id: id, title: newReport.title || "Site Photos Entry", notes: newReport.notes || "", created_by: profile.id })
       .select().single();
     if (reportError || !reportData) { alert("Failed to create report"); setUploading(false); return; }
     if (photoUploads.length > 0) await uploadPhotosForReport(reportData.id, photoUploads);
-    setNewReport({ notes: "" }); setPhotoUploads([]); setShowNewModal(false); setUploading(false); loadData();
+    setNewReport({ title: "Site Photos Entry", notes: "" }); setPhotoUploads([]); setShowNewModal(false); setUploading(false); loadData();
   };
 
   const openDeleteDialog = (photoId: string, photoUrl: string) => setDeleteDialog({ isOpen: true, photoId, photoUrl });
@@ -212,11 +213,11 @@ export function SiteManagerBuildingControl() {
   };
 
   const openEditReport = (report: BuildingControl) => {
-    setEditingReport(report); setEditNotes(report.notes); setEditPhotoUploads([]);
+    setEditingReport(report); setEditTitle(report.title || "Site Photos Entry"); setEditNotes(report.notes); setEditPhotoUploads([]);
   };
 
   const closeEditReport = () => {
-    setEditingReport(null); setEditNotes("");
+    setEditingReport(null); setEditTitle(""); setEditNotes("");
     editPhotoUploads.forEach((u) => URL.revokeObjectURL(u.preview));
     setEditPhotoUploads([]); setIsUpdating(false);
   };
@@ -236,7 +237,7 @@ export function SiteManagerBuildingControl() {
     if (!editingReport || !profile) return;
     setIsUpdating(true);
     const { error } = await supabase.from("building_control")
-      .update({ notes: editNotes, updated_at: new Date().toISOString(), updated_by: profile.id })
+      .update({ title: editTitle || "Site Photos Entry", notes: editNotes || "", updated_at: new Date().toISOString(), updated_by: profile.id })
       .eq("id", editingReport.id);
     if (error) { alert("Failed to update report: " + error.message); setIsUpdating(false); return; }
     if (editPhotoUploads.length > 0) await uploadPhotosForReport(editingReport.id, editPhotoUploads);
@@ -474,7 +475,7 @@ export function SiteManagerBuildingControl() {
                     </button>
                     <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-3 rounded-lg"><FileText className="w-6 h-6 text-white" /></div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Site Photos Entry</h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{report.title || "Site Photos Entry"}</h3>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2"><Calendar className="w-4 h-4" /><span>{new Date(report.created_at ?? "").toLocaleDateString()}</span></div>
                         <div className="flex items-center space-x-2"><User className="w-4 h-4" /><span>{report.created_by_profile?.full_name}</span></div>
@@ -540,8 +541,12 @@ export function SiteManagerBuildingControl() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">New Site Photos Report</h2>
             <form onSubmit={handleCreateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
-                <textarea value={newReport.notes} onChange={(e) => setNewReport({ ...newReport, notes: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={6} placeholder="Enter notes, observations, and findings..." required />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input type="text" value={newReport.title} onChange={(e) => setNewReport({ ...newReport, title: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" placeholder="e.g. Week 2, Foundation Check..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
+                <textarea value={newReport.notes} onChange={(e) => setNewReport({ ...newReport, notes: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={4} placeholder="Enter notes, observations, and findings..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Add Photos</label>
@@ -590,8 +595,12 @@ export function SiteManagerBuildingControl() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Site Photos Report</h2>
             <form onSubmit={handleUpdateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
-                <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={6} placeholder="Enter notes..." required />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" placeholder="e.g. Week 2, Foundation Check..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
+                <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={4} placeholder="Enter notes..." />
               </div>
               {editingReport.photos && editingReport.photos.length > 0 && (
                 <div className="space-y-3">

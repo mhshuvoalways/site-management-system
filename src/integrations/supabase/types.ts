@@ -22,6 +22,7 @@ export type Database = {
           images: Json | null
           notes: string
           site_id: string
+          title: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -32,6 +33,7 @@ export type Database = {
           images?: Json | null
           notes: string
           site_id: string
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -42,6 +44,7 @@ export type Database = {
           images?: Json | null
           notes?: string
           site_id?: string
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
