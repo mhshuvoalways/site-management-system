@@ -217,7 +217,7 @@ export function SiteManagerBuildingControl() {
   };
 
   const closeEditReport = () => {
-    setEditingReport(null); setEditNotes("");
+    setEditingReport(null); setEditTitle(""); setEditNotes("");
     editPhotoUploads.forEach((u) => URL.revokeObjectURL(u.preview));
     setEditPhotoUploads([]); setIsUpdating(false);
   };
