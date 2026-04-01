@@ -258,7 +258,8 @@ export function BuildingControlPage() {
       .from("building_control")
       .insert({
         site_id: id,
-        notes: newReport.notes,
+        title: newReport.title || "Site Photos Entry",
+        notes: newReport.notes || "",
         created_by: profile.id,
       })
       .select()
