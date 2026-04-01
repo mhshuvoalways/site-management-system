@@ -595,8 +595,12 @@ export function SiteManagerBuildingControl() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Site Photos Report</h2>
             <form onSubmit={handleUpdateReport} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes</label>
-                <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={6} placeholder="Enter notes..." required />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Title</label>
+                <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" placeholder="e.g. Week 2, Foundation Check..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Report Notes (optional)</label>
+                <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0db2ad] focus:border-transparent outline-none" rows={4} placeholder="Enter notes..." />
               </div>
               {editingReport.photos && editingReport.photos.length > 0 && (
                 <div className="space-y-3">
