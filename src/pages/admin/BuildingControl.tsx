@@ -55,6 +55,7 @@ export function BuildingControlPage() {
   });
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
   const [editingReport, setEditingReport] = useState<BuildingControl | null>(null);
+  const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editPhotoUploads, setEditPhotoUploads] = useState<PhotoUpload[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
