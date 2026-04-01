@@ -41,7 +41,7 @@ export function SiteManagerBuildingControl() {
   const [reports, setReports] = useState<BuildingControl[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [newReport, setNewReport] = useState({ notes: "" });
+  const [newReport, setNewReport] = useState({ title: "Site Photos Entry", notes: "" });
   const [photoUploads, setPhotoUploads] = useState<PhotoUpload[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; photoId: string; photoUrl: string }>({
