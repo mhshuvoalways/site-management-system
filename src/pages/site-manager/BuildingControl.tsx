@@ -213,7 +213,7 @@ export function SiteManagerBuildingControl() {
   };
 
   const openEditReport = (report: BuildingControl) => {
-    setEditingReport(report); setEditNotes(report.notes); setEditPhotoUploads([]);
+    setEditingReport(report); setEditTitle(report.title || "Site Photos Entry"); setEditNotes(report.notes); setEditPhotoUploads([]);
   };
 
   const closeEditReport = () => {
