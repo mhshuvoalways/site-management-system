@@ -322,6 +322,7 @@ export function BuildingControlPage() {
 
   const closeEditReport = () => {
     setEditingReport(null);
+    setEditTitle("");
     setEditNotes("");
     editPhotoUploads.forEach((u) => URL.revokeObjectURL(u.preview));
     setEditPhotoUploads([]);
