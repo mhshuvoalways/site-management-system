@@ -194,7 +194,7 @@ export function SiteManagerBuildingControl() {
     if (!id || !profile) return;
     setUploading(true);
     const { data: reportData, error: reportError } = await supabase
-      .from("building_control").insert({ site_id: id, notes: newReport.notes, created_by: profile.id })
+      .from("building_control").insert({ site_id: id, title: newReport.title || "Site Photos Entry", notes: newReport.notes || "", created_by: profile.id })
       .select().single();
     if (reportError || !reportData) { alert("Failed to create report"); setUploading(false); return; }
     if (photoUploads.length > 0) await uploadPhotosForReport(reportData.id, photoUploads);
