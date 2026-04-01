@@ -1,104 +1,41 @@
 
 
-# Implementation Plan: 7 Changes from Client Call
+# Add Editable Report Title + Make Notes Optional
 
-## 1. Rename "Building Control" to "Site Photos" everywhere
+## What Bim wants
 
-**Files to change:**
-- `src/pages/admin/SiteDetail.tsx` -- Link text "Building Control" → "Site Photos"
-- `src/pages/site-manager/SiteDetail.tsx` -- Same rename
-- `src/pages/admin/BuildingControl.tsx` -- Page title, report entry labels, modal titles, empty state text, PDF title
-- `src/pages/site-manager/BuildingControl.tsx` -- Same renames
-- `src/App.tsx` -- Route paths stay as `/building-control` (URL doesn't matter to client), but component names stay the same internally
+Right now, every report card displays the hardcoded title **"Site Photos Entry"** and requires notes to be filled in. Bim wants:
 
-No database or route URL changes needed -- only visible UI text.
+1. A **"Report Title"** field added to the create and edit modals (above the notes field)
+2. Users can write custom titles like "Week 2", "Foundation Inspection", etc.
+3. The title appears on the report card instead of the hardcoded "Site Photos Entry"
+4. **Notes become optional** -- not required to create a report
 
-## 2. Make "View Details" button bigger / easier to tap
+## Database change
 
-**Files:** `src/pages/admin/Sites.tsx`, `src/pages/site-manager/SitesList.tsx`
+Add a `title` column to the `building_control` table:
+- Column: `title` (text, nullable, default `'Site Photos Entry'`)
+- Nullable + default ensures all existing reports keep showing "Site Photos Entry" without breaking anything
 
-Currently the "View Details →" is a small text link in the card footer. Change the entire footer area into a clickable Link with a larger tap target -- make it a full-width button-style element with padding.
+## Code changes
 
-## 3. Reports as editable folders (add/remove photos to existing reports, track last modified)
+### Both `src/pages/admin/BuildingControl.tsx` and `src/pages/site-manager/BuildingControl.tsx`:
 
-**Database migration:**
-- Add `updated_at` (timestamptz, default now()) column to `building_control` table
-- Add `updated_by` (uuid, nullable) column to `building_control` table
-- Add UPDATE RLS policy for site managers on `building_control`
+1. **New Report modal**: Add a "Report Title" text input above "Report Notes". Default placeholder: "e.g. Week 2, Foundation Check...". Pre-fill with "Site Photos Entry". Remove `required` from the notes textarea.
 
-**Files:** `src/pages/admin/BuildingControl.tsx`, `src/pages/site-manager/BuildingControl.tsx`
+2. **Edit Report modal**: Add "Report Title" text input (pre-filled with current title). Keep notes optional.
 
-Changes to the Edit modal:
-- Currently edit only allows changing notes text. Expand it to a full "Edit Report" view that shows existing photos (with delete buttons) and an "Upload Photos" / "Take Photo" area to add more
-- When saving edits, update `updated_at` and `updated_by`
+3. **Report card display**: Replace hardcoded `"Site Photos Entry"` with `report.title || 'Site Photos Entry'` (fallback for old reports without a title).
 
-Display changes on report cards:
-- Show "Last modified by [name] on [date]" when `updated_at` differs from `created_at`
+4. **State updates**: Change `newReport` state from `{ notes: "" }` to `{ title: "Site Photos Entry", notes: "" }`. Add `editTitle` state alongside existing `editNotes`.
 
-## 4. "Take Photo" with geolocation
+5. **Insert/Update queries**: Include `title` field in the Supabase insert and update calls.
 
-**Database migration** (combined with #3):
-- Add `latitude` (double precision, nullable) to `building_control_photos`
-- Add `longitude` (double precision, nullable) to `building_control_photos`
-- Add `location_address` (text, nullable) to `building_control_photos`
-- Add `taken_at` (timestamptz, nullable) to `building_control_photos`
+### `src/types/index.ts`:
+- Add `title?: string` to the `BuildingControl` interface.
 
-**Files:** `src/pages/admin/BuildingControl.tsx`, `src/pages/site-manager/BuildingControl.tsx`
-
-- Add a "Take Photo" button (camera icon) that uses `<input type="file" accept="image/*" capture="environment">` to open device camera
-- On capture, call `navigator.geolocation.getCurrentPosition()` to get lat/lng
-- Reverse geocode via OpenStreetMap Nominatim API (free, no key)
-- Store location data with the photo record
-- Display location badge and timestamp on photo thumbnails
-- Include location/time in PDF export
-
-**PhotoUpload interface update:**
-```typescript
-interface PhotoUpload {
-  file: File;
-  preview: string;
-  notes: string;
-  latitude?: number;
-  longitude?: number;
-  locationAddress?: string;
-  takenAt?: string;
-}
-```
-
-## 5. Download as PDF or JPEG/PNG (selectable photos)
-
-**Files:** `src/pages/admin/BuildingControl.tsx`, `src/pages/site-manager/BuildingControl.tsx`
-
-In the bulk action bar, replace the single "Download PDF" button with two options:
-- **Download as PDF** -- existing behavior, generates a formatted PDF document
-- **Download as Images** -- downloads the selected reports' photos as individual JPEG/PNG files
-
-For single report download button, show a small dropdown with "PDF" and "Images" options.
-
-## 6. Scoped "Empty Trash" -- only empties the active tab
-
-**File:** `src/pages/admin/Trash.tsx`
-
-Change `handleEmptyAll` to only delete items from the currently active tab instead of all tabs. Update the button label from "Empty All Trash" to "Empty [Tab Name] Trash" (e.g., "Empty Site Items Trash"). Update the confirmation dialog message to reflect the scoped deletion.
-
-## 7. All roles can add/delete in Site Photos (not just admins)
-
-**Database migration** (combined with #3 and #4):
-- Add UPDATE and DELETE RLS policies for site managers on `building_control`
-- Add DELETE policy for site managers on `building_control_photos`
-- Add INSERT, SELECT, UPDATE, DELETE policies for workers on `building_control` and `building_control_photos` (scoped to their assigned sites via `worker_assignments`)
-
-No frontend role-gating changes needed since the BuildingControl pages don't currently check roles for UI actions -- the RLS policies are the gatekeepers.
-
----
-
-## Implementation Order
-
-1. Database migration (columns + RLS policies for changes 3, 4, 7)
-2. Rename "Building Control" → "Site Photos" (#1)
-3. Bigger "View Details" button (#2)
-4. Scoped trash empty (#6)
-5. Take Photo with geolocation (#4)
-6. Folder-style edit report with add/remove photos + last modified tracking (#3)
-7. Download as PDF or Images (#5)
+## Implementation order
+1. Database migration (add `title` column)
+2. Update both BuildingControl page files (admin + site-manager)
+3. Update TypeScript types
 
