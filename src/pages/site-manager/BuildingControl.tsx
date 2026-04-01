@@ -475,7 +475,7 @@ export function SiteManagerBuildingControl() {
                     </button>
                     <div className="bg-gradient-to-r from-[#0db2ad] to-[#567fca] p-3 rounded-lg"><FileText className="w-6 h-6 text-white" /></div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Site Photos Entry</h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{report.title || "Site Photos Entry"}</h3>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2"><Calendar className="w-4 h-4" /><span>{new Date(report.created_at ?? "").toLocaleDateString()}</span></div>
                         <div className="flex items-center space-x-2"><User className="w-4 h-4" /><span>{report.created_by_profile?.full_name}</span></div>
