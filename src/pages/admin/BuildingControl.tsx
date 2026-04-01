@@ -1039,16 +1039,17 @@ export function BuildingControlPage() {
 
               {/* Add More Photos */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Add More Photos</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Add Photos</label>
                 <div className="flex gap-3">
-                  <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#0db2ad] transition">
+                  <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0db2ad] transition">
                     <input type="file" accept="image/*" multiple onChange={handleEditFileSelect} className="hidden" id="edit-photo-upload" />
                     <label htmlFor="edit-photo-upload" className="cursor-pointer">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600">Upload Photos</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
                     </label>
                   </div>
-                  <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#0db2ad] transition">
+                  <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0db2ad] transition">
                     <input
                       ref={editCameraInputRef}
                       type="file"
@@ -1059,8 +1060,9 @@ export function BuildingControlPage() {
                       id="edit-camera-capture"
                     />
                     <label htmlFor="edit-camera-capture" className="cursor-pointer">
-                      <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                      <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600">Take Photo</p>
+                      <p className="text-xs text-gray-500 mt-1">With geolocation</p>
                     </label>
                   </div>
                 </div>
