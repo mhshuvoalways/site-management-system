@@ -198,7 +198,7 @@ export function SiteManagerBuildingControl() {
       .select().single();
     if (reportError || !reportData) { alert("Failed to create report"); setUploading(false); return; }
     if (photoUploads.length > 0) await uploadPhotosForReport(reportData.id, photoUploads);
-    setNewReport({ notes: "" }); setPhotoUploads([]); setShowNewModal(false); setUploading(false); loadData();
+    setNewReport({ title: "Site Photos Entry", notes: "" }); setPhotoUploads([]); setShowNewModal(false); setUploading(false); loadData();
   };
 
   const openDeleteDialog = (photoId: string, photoUrl: string) => setDeleteDialog({ isOpen: true, photoId, photoUrl });
