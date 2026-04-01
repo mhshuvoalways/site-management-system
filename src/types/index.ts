@@ -56,6 +56,7 @@ export interface Transfer {
 export interface BuildingControl {
   id: string;
   site_id: string;
+  title?: string;
   notes: string;
   images: unknown;
   created_by: string;

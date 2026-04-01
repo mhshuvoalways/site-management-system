@@ -762,7 +762,7 @@ export function BuildingControlPage() {
                       <FileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Site Photos Entry</h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{report.title || "Site Photos Entry"}</h3>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4" />
