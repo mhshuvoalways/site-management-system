@@ -275,7 +275,7 @@ export function BuildingControlPage() {
       await uploadPhotosForReport(reportData.id, photoUploads);
     }
 
-    setNewReport({ notes: "" });
+    setNewReport({ title: "Site Photos Entry", notes: "" });
     setPhotoUploads([]);
     setShowNewModal(false);
     setUploading(false);
